@@ -16,10 +16,10 @@ namespace Tetris
         static int score = 0;
 
         // reserving ( these aren't the actual dimensions, these are for checking if the tetromino will be out of border )
-        const byte LEFT_SPARE = 3;
-        const byte RIGHT_SPARE = 2;
+        //const byte LEFT_SPARE = 3;
+        //const byte RIGHT_SPARE = 2;
         const byte UP_SPARE = 2;
-        const byte DOWN_SPARE = 2;
+        //const byte DOWN_SPARE = 2;
 
         // some keybinds
         static List<ConsoleKey> upInput = new() { ConsoleKey.UpArrow, ConsoleKey.W, ConsoleKey.LeftArrow, ConsoleKey.A };
@@ -283,9 +283,9 @@ namespace Tetris
             const ushort SCORE_HARD = 2; // hard drop
 
             // store the coordinates of occupied slots (excluding player-controlled tetromino)
-            bool[,] coords = new bool[WIDTH + LEFT_SPARE + RIGHT_SPARE, HEIGHT + UP_SPARE + DOWN_SPARE]; // normally there should be 26 y values
+            bool[,] coords = new bool[WIDTH, HEIGHT + UP_SPARE]; // normally there should be 26 y values
             // the last y value is reserved for knowing vertical hit in advance (if you don't declare the 27th, the program will crash)
-            ConsoleColor[,] colours = new ConsoleColor[WIDTH + 4, HEIGHT + 4]; // stores the colours of each block 
+            ConsoleColor[,] colours = new ConsoleColor[WIDTH, HEIGHT + UP_SPARE]; // stores the colours of each block 
 
             List<byte> tetros = new(); // list of types of tetrominoes to generate
             // generating the list of types of tetrominoes
@@ -355,25 +355,25 @@ namespace Tetris
                 Write(NO_HIGHSCORE_MSG);
             }
 
-            for (byte v = 0; v < HEIGHT + 1 + UP_SPARE; v++)
+            for (byte v = 0; v < HEIGHT + UP_SPARE; v++)
             {
-                for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                for (byte h = 0; h < WIDTH; h++)
                 {
                     coords[h, v] = false; // emptying the game window
                     colours[h, v] = ConsoleColor.Black; // resetting colours
-                    coords[h, HEIGHT + 1 + UP_SPARE] = false;
+                    coords[h, HEIGHT + UP_SPARE - 1] = false;
                 }
 
                 // filling the corners
-                for (byte h2 = 0; h2 < LEFT_SPARE; h2++)
+                for (byte h2 = 0; h2 < 0; h2++)
                 {
                     coords[h2, v] = true;
-                    coords[h2, HEIGHT + 1 + UP_SPARE] = false;
-                    for (byte h3 = WIDTH + LEFT_SPARE; h3 < WIDTH + LEFT_SPARE + RIGHT_SPARE; h3++)
-                    {
-                        coords[h3, v] = true;
-                        coords[h3, HEIGHT + 1 + UP_SPARE] = false;
-                    }
+                    coords[h2, HEIGHT + UP_SPARE] = false;
+                    //for (byte h3 = WIDTH; h3 < WIDTH; h3++)
+                    //{
+                    //    coords[h3, v] = true;
+                    //    coords[h3, HEIGHT + UP_SPARE] = false;
+                    //}
                 }
             }
 
@@ -400,7 +400,7 @@ namespace Tetris
                     byte streak = 0; // how many line are cleared at a time
 
                     // check if game over
-                    for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                    for (byte h = 0; h < WIDTH; h++)
                     {
                         if (coords[h, 2 + UP_SPARE]) // if block is found on top
                         {
@@ -415,9 +415,9 @@ namespace Tetris
                         for (byte v = HEIGHT - 1 + UP_SPARE; v > UP_SPARE - 1; v--) // from bottom to top
                         {
                             blockNum = 0;
-                            for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                            for (byte h = 0; h < WIDTH; h++)
                             {
-                                if (coords[h, v + UP_SPARE] == true) // if the slot is occupied
+                                if (coords[h, v]) // if the slot is occupied
                                 {
                                     blockNum++;
                                 }
@@ -428,14 +428,14 @@ namespace Tetris
                                 line++;
                                 lineShowed++;
                                 byte yFilledLine = v; // rename "v" to y level of the filled line
-                                for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                                for (byte h = 0; h < WIDTH; h++)
                                 {
-                                    coords[h, yFilledLine + UP_SPARE] = false; // clear the filled line (value)
-                                    colours[h, yFilledLine + UP_SPARE] = ConsoleColor.Black; // clear the filled line (colour)
+                                    coords[h, yFilledLine] = false; // clear the filled line (value)
+                                    colours[h, yFilledLine] = ConsoleColor.Black; // clear the filled line (colour)
                                     for (byte v2 = yFilledLine; v2 > 0; v2--) // for the filled line and each line above it
                                     {
-                                        coords[h, v2 + UP_SPARE] = coords[h, v2 + UP_SPARE - 1]; // line below = line above (copying value)
-                                        colours[h, v2 + UP_SPARE] = colours[h, v2 + UP_SPARE - 1]; // line below = line above (copying colour)
+                                        coords[h, v2] = coords[h, v2 - 1]; // line below = line above (copying value)
+                                        colours[h, v2] = colours[h, v2 - 1]; // line below = line above (copying colour)
                                     }
                                 }
                                 DrawLines(yFilledLine, coords, colours, WIDTH);
@@ -556,59 +556,59 @@ namespace Tetris
                     DrawPreview(tetros);
                     switch (tetros[0]) // initialise tetromino blocks' position & colour
                     {
-                        case 0: // I                                        ████████
-                            x[0] = LEFT_SPARE + 3; y[0] = UP_SPARE; //  
-                            x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE;
-                            x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE;
-                            x[3] = LEFT_SPARE + 6; y[3] = UP_SPARE;
+                        case 0: // I               ████████
+                            x[0] = 3; y[0] = UP_SPARE; //  
+                            x[1] = 4; y[1] = UP_SPARE;
+                            x[2] = 5; y[2] = UP_SPARE;
+                            x[3] = 6; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Cyan;
                             iNum++;
                             break;
-                        case 1: // L                                            ██
-                            x[0] = LEFT_SPARE + 3; y[0] = UP_SPARE + 1; //  ██████
-                            x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
-                            x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
+                        case 1: // L                               ██
+                            x[0] = 3; y[0] = UP_SPARE + 1; //  ██████
+                            x[1] = 4; y[1] = UP_SPARE + 1;
+                            x[2] = 5; y[2] = UP_SPARE + 1;
+                            x[3] = 5; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.DarkYellow;
                             lNum++;
                             break;
-                        case 2: // J                                        ██
-                            x[0] = LEFT_SPARE + 3; y[0] = UP_SPARE + 1; //  ██████
-                            x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
-                            x[3] = LEFT_SPARE + 3; y[3] = UP_SPARE;
+                        case 2: // J                           ██
+                            x[0] = 3; y[0] = UP_SPARE + 1; //  ██████
+                            x[1] = 4; y[1] = UP_SPARE + 1;
+                            x[2] = 5; y[2] = UP_SPARE + 1;
+                            x[3] = 3; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Blue;
                             jNum++;
                             break;
-                        case 3: // T                                          ██
-                            x[0] = LEFT_SPARE + 3; y[0] = UP_SPARE + 1; //  ██████
-                            x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
-                            x[3] = LEFT_SPARE + 4; y[3] = UP_SPARE;
+                        case 3: // T                             ██
+                            x[0] = 3; y[0] = UP_SPARE + 1; //  ██████
+                            x[1] = 4; y[1] = UP_SPARE + 1;
+                            x[2] = 5; y[2] = UP_SPARE + 1;
+                            x[3] = 4; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Magenta;
                             tNum++;
                             break;
-                        case 4: // O                                        ████
-                            x[0] = LEFT_SPARE + 4; y[0] = UP_SPARE + 1; //  ████
-                            x[1] = LEFT_SPARE + 5; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 4; y[2] = UP_SPARE;
-                            x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
+                        case 4: // O                           ████
+                            x[0] = 4; y[0] = UP_SPARE + 1; //  ████
+                            x[1] = 5; y[1] = UP_SPARE + 1;
+                            x[2] = 4; y[2] = UP_SPARE;
+                            x[3] = 5; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Yellow;
                             oNum++;
                             break;
-                        case 5: // S                                          ████
-                            x[0] = LEFT_SPARE + 3; y[0] = UP_SPARE + 1; //  ████
-                            x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 4; y[2] = UP_SPARE;
-                            x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
+                        case 5: // S                             ████
+                            x[0] = 3; y[0] = UP_SPARE + 1; //  ████
+                            x[1] = 4; y[1] = UP_SPARE + 1;
+                            x[2] = 4; y[2] = UP_SPARE;
+                            x[3] = 5; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Green;
                             sNum++;
                             break;
-                        case 6: // Z                                        ████
-                            x[0] = LEFT_SPARE + 4; y[0] = UP_SPARE + 1; //    ████
-                            x[1] = LEFT_SPARE + 5; y[1] = UP_SPARE + 1;
-                            x[2] = LEFT_SPARE + 3; y[2] = UP_SPARE;
-                            x[3] = LEFT_SPARE + 4; y[3] = UP_SPARE;
+                        case 6: // Z                           ████
+                            x[0] = 4; y[0] = UP_SPARE + 1; //    ████
+                            x[1] = 5; y[1] = UP_SPARE + 1;
+                            x[2] = 3; y[2] = UP_SPARE;
+                            x[3] = 4; y[3] = UP_SPARE;
                             ForegroundColor = ConsoleColor.Red;
                             zNum++;
                             break;
@@ -623,7 +623,7 @@ namespace Tetris
                     {
                         if (!intense) // if not intense
                         {
-                            for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                            for (byte h = 0; h < WIDTH; h++)
                             {
                                 if (coords[h, INTENSE_Y]) // if a block is detected on that line
                                 {
@@ -637,7 +637,7 @@ namespace Tetris
                         else // if intense
                         {
                             byte blockNum = 0;
-                            for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                            for (byte h = 0; h < WIDTH; h++)
                             {
                                 if (coords[h, INTENSE_Y])
                                 {
@@ -1005,8 +1005,8 @@ namespace Tetris
                             generateNew = true;
                             for (byte i = 0; i < BLOC; i++) // recording occupied slots
                             {
-                                coords[x[i], y[i] + UP_SPARE] = true;
-                                colours[x[i], y[i] + UP_SPARE] = ForegroundColor;
+                                coords[x[i], y[i]] = true;
+                                colours[x[i], y[i]] = ForegroundColor;
                             }
                             taxiTick = 0;
                             hardDrop = false;
@@ -1045,8 +1045,8 @@ namespace Tetris
                     hardDrop = false;
                     for (byte i = 0; i < BLOC; i++) // recording occupied slots
                     {
-                        coords[x[i], y[i] + UP_SPARE] = true;
-                        colours[x[i], y[i] + UP_SPARE] = ForegroundColor;
+                        coords[x[i], y[i]] = true;
+                        colours[x[i], y[i]] = ForegroundColor;
                     }
                 }
                 if (tick > maxTickDrop) // prevent some edge cases
@@ -1267,12 +1267,12 @@ namespace Tetris
                     return false;
                 }
 
-                if (x[i] >= WIDTH + LEFT_SPARE || y[i] + 1 >= HEIGHT + UP_SPARE) // if out of coords' range
+                if (x[i] >= WIDTH || y[i] + 1 >= HEIGHT + UP_SPARE) // if out of coords' range
                 {
                     return false;
                 }
 
-                if (coords[x[i], y[i] + UP_SPARE + 1]) // if there's a placed tetromino below the falling tetromino
+                if (coords[x[i], y[i] + 1]) // if there's a placed tetromino below the falling tetromino
                 {
                     return false;
                 }
@@ -1286,11 +1286,11 @@ namespace Tetris
             // check if left side or right side will be exceeded
             for (byte i = 0; i < BLOC; i++)
             {
-                if (x[i] + direction < LEFT_SPARE || x[i] + direction > WIDTH + LEFT_SPARE - 1)
+                if (x[i] + direction < 0 || x[i] + direction > WIDTH - 1)
                 {
                     return false;
                 }
-                else if (coords[x[i] + direction, y[i] + UP_SPARE])
+                else if (coords[x[i] + direction, y[i]])
                 {
                     return false;
                 }
@@ -1302,7 +1302,11 @@ namespace Tetris
         {
             for (byte i = 0; i < BLOC; i++)
             {
-                if (coords[x[i] + deltaX[i], y[i] + deltaY[i] + UP_SPARE]) // if hit placed tetromino
+                if (x[i] + deltaX[i] < 0 || x[i] + deltaX[i] >= WIDTH || y[i] >= HEIGHT) // if out of range
+                {
+                    return false;
+                }
+                else if (coords[x[i] + deltaX[i], y[i] + deltaY[i] + UP_SPARE]) // if hit placed tetromino
                 {
                     return false;
                 }
@@ -1317,11 +1321,11 @@ namespace Tetris
         {
             for (byte v = (byte)(yFilledLine); v > 1; v--) // for the filled line and each line above it
             {
-                for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
+                for (byte h = 0; h < WIDTH; h++)
                 {
-                    SetCursorPosition(6 + ((h - LEFT_SPARE) * 2), v + 2 - UP_SPARE);
-                    ForegroundColor = colours[h, v + UP_SPARE];
-                    if (coords[h, v + UP_SPARE] == true) Write(BLOCK);
+                    SetCursorPosition(6 + (h * 2), v + 2 - UP_SPARE);
+                    ForegroundColor = colours[h, v];
+                    if (coords[h, v]) Write(BLOCK);
                     else Write(BLANK);
                 }
             }
@@ -1341,21 +1345,10 @@ namespace Tetris
             {
                 if (y[i] > 1)
                 {
-                    SetCursorPosition(6 + ((x[i] - LEFT_SPARE) * 2), y[i] + 2 - UP_SPARE);
+                    SetCursorPosition(6 + (x[i] * 2), y[i] + 2 - UP_SPARE);
                     Write(block);
                 }
             }
-        }
-        static bool TryMove(bool[,] coords, byte[] x, byte[] y, sbyte direction)
-        {
-            for (byte i = 0; i < BLOC; i++)
-            {
-                if (coords[x[i] + direction, y[i] + UP_SPARE] == true)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
         static void DrawPreview(List<byte> tetros)
         {
