@@ -5,4 +5,4 @@ If you just need to play the game itself, go to Releases on the right hand side,
 https://github.com/NaBrHCl/Csharp-Console-App-Tetris/releases/download/v1.0.0/c.-Console-App-Tetris.zip
 
 
-P.S. Hold piece isn't added into the game yet!
+P.S. Piece holding isn't added into the game yet!
