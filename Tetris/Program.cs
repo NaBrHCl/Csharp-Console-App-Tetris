@@ -5,16 +5,13 @@ using System.Media;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Console;
 
 namespace Tetris
 {
     internal class Program
     {
-        // ======================================================================================================== \\
-        // if you see a variable that's not const but is named with ALL_CAPS_SNAKE_CASE then don't change its value \\
-        // ======================================================================================================== \\
-
-
+        #region Variable Declaration
         // score
         static int score = 0;
 
@@ -70,6 +67,9 @@ namespace Tetris
         static byte ghost; // whether show ghost pieces
         static byte colour; // whether black and white or colourful
 
+        #endregion
+
+        #region Game
         static void Main(string[] args)
         {
             // tetris screen 10 x 26 grids
@@ -84,8 +84,8 @@ namespace Tetris
                 moveRight[1] = ConsoleKey.LeftArrow;
             }
 
-            Console.CursorVisible = false;
-            Console.ForegroundColor = ConsoleColor.White;
+            CursorVisible = false;
+            ForegroundColor = ConsoleColor.White;
 
             // loading
             LoadSettings();
@@ -96,20 +96,27 @@ namespace Tetris
             {
                 // if the player goes to fullscreen, the CURSOR will occur,
                 // but if he goes back to the main menu, the CURSOR will disappear once again
-                Console.CursorVisible = false;
+                CursorVisible = false;
 
                 selection = Start(); // show menu (options) and get the user's selection
                 switch (selection)
                 {
-                    case 0: NewGame(LevelSelection()); break;
+                    case 0:
+                        sbyte levelSelected = LevelSelection();
+                        if (levelSelected != -1) NewGame((byte)levelSelected);
+                        break;
                     case 1: Settings(); break;
                     case 2: Scoreboard(); break;
                     case 3: Tutorial(); break;
                 }
-                Console.Clear();
+                Clear();
             }
             while (selection != 4); // case 4: ExitGame
         }
+
+        #endregion
+
+        #region Main Game
         static byte Start() // title screen
         {
             // music ( it's placed in Start instead of Main, this way the music changes without the game reopening if the player changes it in the settings)
@@ -142,8 +149,9 @@ namespace Tetris
                 CLEAR_CURSOR += " ";
             }
 
-            Console.Clear();
-            Console.WriteLine(@"
+            Clear();
+            ForegroundColor = ConsoleColor.White;
+            WriteLine(@"
 
           _____ _____ _____ ____  ___ ____  
          |_   _| ____|_   _|  _ \|_ _/ ___| 
@@ -154,13 +162,13 @@ namespace Tetris
 
 
             ");
-            Console.WriteLine(@"
+            WriteLine(@"
                 New Game
                 Settings
                 Scoreboard
                 Tutorial
                 Exit Game");
-            Console.ReadKey(true); // press any key to continue
+            ReadKey(true); // press any key to continue
 
             const byte X = 14; // CURSOR horizontal position
             const byte Y_BASE = 12; // original CURSOR vertical position
@@ -171,13 +179,13 @@ namespace Tetris
 
             while (true)
             {
-                Console.SetCursorPosition(X, y);
-                Console.Write(CURSOR);
-                while (Console.KeyAvailable)
+                SetCursorPosition(X, y);
+                Write(CURSOR);
+                while (KeyAvailable)
                 {
-                    ConsoleKey input = Console.ReadKey(true).Key;
-                    Console.SetCursorPosition(X, y);
-                    Console.Write(CLEAR_CURSOR); // remove the previous CURSOR
+                    ConsoleKey input = ReadKey(true).Key;
+                    SetCursorPosition(X, y);
+                    Write(CLEAR_CURSOR); // remove the previous CURSOR
                     if (downInput.Contains(input)) y++;
                     else if (upInput.Contains(input)) y--;
                     else if (confirmInput.Contains(input))
@@ -296,9 +304,9 @@ namespace Tetris
             List<ConsoleKey> keyList = new(); // records the recent keys pressed
             const byte KEY_LIST_LENGTH = 11; // max count of keyList
 
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(@"            LEVEL 
+            Clear();
+            ForegroundColor = ConsoleColor.White;
+            Write(@"            LEVEL 
      #════════════════════#   +------------+
      ║                    ║   |            |
      ║                    ║   |            |
@@ -334,17 +342,17 @@ namespace Tetris
                 string strHighScore = Convert.ToString(scores[0]);
                 if (strHighScore.Length == 1) highScorePosX = (byte)(VALUE_BASE_X + 1); // centre text if string length = 1
                 else highScorePosX = (byte)(VALUE_BASE_X + 1 - Math.Ceiling((float)(strHighScore.Length / 2))); // centre text if string length > 1
-                Console.SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
-                Console.Write("         ");
-                Console.SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
-                Console.Write(scores[0]);
+                SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
+                Write("         ");
+                SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
+                Write(scores[0]);
             }
             else // if the scoreboard is empty
             {
-                Console.SetCursorPosition(VALUE_BASE_X - 1, HIGHSCORE_BASE_Y);
-                Console.Write("         ");
-                Console.SetCursorPosition(VALUE_BASE_X - 1, HIGHSCORE_BASE_Y);
-                Console.Write(NO_HIGHSCORE_MSG);
+                SetCursorPosition(VALUE_BASE_X - 1, HIGHSCORE_BASE_Y);
+                Write("         ");
+                SetCursorPosition(VALUE_BASE_X - 1, HIGHSCORE_BASE_Y);
+                Write(NO_HIGHSCORE_MSG);
             }
 
             for (byte v = 0; v < HEIGHT + 1 + UP_SPARE; v++)
@@ -378,10 +386,10 @@ namespace Tetris
                 {
                     score += SCORE_INCREMENT;
                     byte scorePosX = (byte)(VALUE_BASE_X - Math.Ceiling((float)(score.ToString().Length / 2)));
-                    Console.SetCursorPosition(scorePosX, SCORE_BASE_Y);
-                    Console.Write("         ");
-                    Console.SetCursorPosition(scorePosX, SCORE_BASE_Y);
-                    Console.Write(score);
+                    SetCursorPosition(scorePosX, SCORE_BASE_Y);
+                    Write("         ");
+                    SetCursorPosition(scorePosX, SCORE_BASE_Y);
+                    Write(score);
                 }
 
                 if (generateNew) // if previous tetromino hit then make new one
@@ -435,13 +443,13 @@ namespace Tetris
                         }
 
                         // print line and level
-                        Console.ForegroundColor = ConsoleColor.White;
+                        ForegroundColor = ConsoleColor.White;
                         string strLine = lineShowed.ToString();
                         byte linePosX = (byte)(VALUE_BASE_X - Math.Ceiling((float)(strLine.Length / 2)));
-                        Console.SetCursorPosition(linePosX, LINES_BASE_Y);
-                        Console.Write(lineShowed);
-                        Console.SetCursorPosition(LEVEL_X, LEVEL_Y);
-                        Console.Write(level);
+                        SetCursorPosition(linePosX, LINES_BASE_Y);
+                        Write(lineShowed);
+                        SetCursorPosition(LEVEL_X, LEVEL_Y);
+                        Write(level);
 
                         // 5124 level changing mechanic
                         if (line < 60)
@@ -537,10 +545,10 @@ namespace Tetris
                     // print score
                     string strScore = Convert.ToString(score);
                     byte scorePosX = (byte)(36 - Math.Ceiling((float)(strScore.Length / 2)));
-                    Console.SetCursorPosition(scorePosX, SCORE_BASE_Y);
-                    Console.Write("         ");
-                    Console.SetCursorPosition(scorePosX, SCORE_BASE_Y);
-                    Console.Write(score);
+                    SetCursorPosition(scorePosX, SCORE_BASE_Y);
+                    Write("         ");
+                    SetCursorPosition(scorePosX, SCORE_BASE_Y);
+                    Write(score);
 
                     pose = 0;
                     tetros.Add(Dice(tetros[BLOC - 1])); // which type of tetro to generate
@@ -553,7 +561,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE;
                             x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE;
                             x[3] = LEFT_SPARE + 6; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            ForegroundColor = ConsoleColor.Cyan;
                             iNum++;
                             break;
                         case 1: // L                                            ██
@@ -561,7 +569,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
                             x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.DarkYellow;
+                            ForegroundColor = ConsoleColor.DarkYellow;
                             lNum++;
                             break;
                         case 2: // J                                        ██
@@ -569,7 +577,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
                             x[3] = LEFT_SPARE + 3; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Blue;
+                            ForegroundColor = ConsoleColor.Blue;
                             jNum++;
                             break;
                         case 3: // T                                          ██
@@ -577,7 +585,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 5; y[2] = UP_SPARE + 1;
                             x[3] = LEFT_SPARE + 4; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Magenta;
+                            ForegroundColor = ConsoleColor.Magenta;
                             tNum++;
                             break;
                         case 4: // O                                        ████
@@ -585,7 +593,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 5; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 4; y[2] = UP_SPARE;
                             x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            ForegroundColor = ConsoleColor.Yellow;
                             oNum++;
                             break;
                         case 5: // S                                          ████
@@ -593,7 +601,7 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 4; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 4; y[2] = UP_SPARE;
                             x[3] = LEFT_SPARE + 5; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Green;
+                            ForegroundColor = ConsoleColor.Green;
                             sNum++;
                             break;
                         case 6: // Z                                        ████
@@ -601,14 +609,14 @@ namespace Tetris
                             x[1] = LEFT_SPARE + 5; y[1] = UP_SPARE + 1;
                             x[2] = LEFT_SPARE + 3; y[2] = UP_SPARE;
                             x[3] = LEFT_SPARE + 4; y[3] = UP_SPARE;
-                            Console.ForegroundColor = ConsoleColor.Red;
+                            ForegroundColor = ConsoleColor.Red;
                             zNum++;
                             break;
                     }
 
                     if (colour == 0) // for dicromatic mode
                     {
-                        Console.ForegroundColor = ConsoleColor.White;
+                        ForegroundColor = ConsoleColor.White;
                     }
 
                     if (music != 0)
@@ -646,9 +654,9 @@ namespace Tetris
                     }
                 }
 
-                while (Console.KeyAvailable) // if a key is pressed
+                while (KeyAvailable) // if a key is pressed
                 {
-                    ConsoleKey input = Console.ReadKey(true).Key;
+                    ConsoleKey input = ReadKey(true).Key;
 
                     // records key sequence and maintain its length
                     keyList.Add(input);
@@ -897,10 +905,10 @@ namespace Tetris
 
                 if (drawGhost && ghost == 1)
                 {
-                    ConsoleColor previousColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    ConsoleColor previousColor = ForegroundColor;
+                    ForegroundColor = ConsoleColor.DarkGray;
                     Draw(x, lowY, true);
-                    Console.ForegroundColor = previousColor;
+                    ForegroundColor = previousColor;
                 }
                 if (hardDrop)
                 {
@@ -916,15 +924,15 @@ namespace Tetris
                 {
                     ConsoleKey input;
                     ifPause = false;
-                    ConsoleColor previousColour = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.SetCursorPosition(0, 0);
-                    Console.Write("PAUSED");
-                    Console.SetCursorPosition(35, 28);
-                    Console.Write(" ║ ");
+                    ConsoleColor previousColour = ForegroundColor;
+                    ForegroundColor = ConsoleColor.White;
+                    SetCursorPosition(0, 0);
+                    Write("PAUSED");
+                    SetCursorPosition(35, 28);
+                    Write(" ║ ");
                     do
                     {
-                        input = Console.ReadKey(true).Key;
+                        input = ReadKey(true).Key;
                     }
                     while (!pause.Contains(input) && input != ConsoleKey.Backspace);
                     if (input == ConsoleKey.Backspace)
@@ -934,11 +942,11 @@ namespace Tetris
                     }
                     else
                     {
-                        Console.SetCursorPosition(35, 28);
-                        Console.Write(" > ");
-                        Console.SetCursorPosition(0, 0);
-                        Console.Write("      ");
-                        Console.ForegroundColor = previousColour;
+                        SetCursorPosition(35, 28);
+                        Write(" > ");
+                        SetCursorPosition(0, 0);
+                        Write("      ");
+                        ForegroundColor = previousColour;
                     }
                 }
                 long t2 = DateTime.Now.Millisecond; // for delta time
@@ -998,7 +1006,7 @@ namespace Tetris
                             for (byte i = 0; i < BLOC; i++) // recording occupied slots
                             {
                                 coords[x[i], y[i] + UP_SPARE] = true;
-                                colours[x[i], y[i] + UP_SPARE] = Console.ForegroundColor;
+                                colours[x[i], y[i] + UP_SPARE] = ForegroundColor;
                             }
                             taxiTick = 0;
                             hardDrop = false;
@@ -1038,7 +1046,7 @@ namespace Tetris
                     for (byte i = 0; i < BLOC; i++) // recording occupied slots
                     {
                         coords[x[i], y[i] + UP_SPARE] = true;
-                        colours[x[i], y[i] + UP_SPARE] = Console.ForegroundColor;
+                        colours[x[i], y[i] + UP_SPARE] = ForegroundColor;
                     }
                 }
                 if (tick > maxTickDrop) // prevent some edge cases
@@ -1048,7 +1056,7 @@ namespace Tetris
                 dropKeyPress = false;
             }
         }
-        static byte LevelSelection()
+        static sbyte LevelSelection()
         {
             ConsoleKey input;
             byte x = 1, y = 1;
@@ -1062,8 +1070,8 @@ namespace Tetris
                 {1,1,1,1,1},
                 };
 
-            Console.Clear();
-            Console.WriteLine(@"
+            Clear();
+            WriteLine(@"
                     Select a Level
 
                 *---*---*---*
@@ -1073,34 +1081,35 @@ namespace Tetris
                 *---*---*---*   *---*
                 | 6 | 7 | 8 |
                 *---*---*---*");
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Red;
-            else Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.SetCursorPosition(16, 3);
-            Console.Write("*---*");
-            Console.SetCursorPosition(16, 4);
-            Console.Write("|");
-            Console.SetCursorPosition(20, 4);
-            Console.Write("|");
-            Console.SetCursorPosition(16, 5);
-            Console.Write("*---*");
+            if (colour != 0) ForegroundColor = ConsoleColor.Red;
+            else ForegroundColor = ConsoleColor.DarkGray;
+            SetCursorPosition(16, 3);
+            Write("*---*");
+            SetCursorPosition(16, 4);
+            Write("|");
+            SetCursorPosition(20, 4);
+            Write("|");
+            SetCursorPosition(16, 5);
+            Write("*---*");
             do
             {
                 sbyte deltaX = 0, deltaY = 0;
-                input = Console.ReadKey(true).Key;
+                input = ReadKey(true).Key;
                 if (moveLeft.Contains(input)) deltaX = -1;
                 else if (moveRight.Contains(input)) deltaX = 1;
                 else if (upInput.Contains(input)) deltaY = -1;
                 else if (downInput.Contains(input)) deltaY = 1;
-                Console.SetCursorPosition(16 + x, 4 + y);
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 3 + (y - 1) * 2);
-                Console.Write("*---*");
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 4 + (y - 1) * 2);
-                Console.Write("|");
-                Console.SetCursorPosition(20 + ((x - 1) * 4), 4 + (y - 1) * 2);
-                Console.Write("|");
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 5 + (y - 1) * 2);
-                Console.Write("*---*");
+                else if (exitInput.Contains(input)) return -1;
+                SetCursorPosition(16 + x, 4 + y);
+                ForegroundColor = ConsoleColor.White;
+                SetCursorPosition(16 + ((x - 1) * 4), 3 + (y - 1) * 2);
+                Write("*---*");
+                SetCursorPosition(16 + ((x - 1) * 4), 4 + (y - 1) * 2);
+                Write("|");
+                SetCursorPosition(20 + ((x - 1) * 4), 4 + (y - 1) * 2);
+                Write("|");
+                SetCursorPosition(16 + ((x - 1) * 4), 5 + (y - 1) * 2);
+                Write("*---*");
                 if (map[x + deltaX, y + deltaY] == 0)
                 {
                     x += (byte)deltaX;
@@ -1132,15 +1141,15 @@ namespace Tetris
                     }
                 }
                 else selectionColour = ConsoleColor.DarkGray;
-                Console.ForegroundColor = selectionColour;
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 3 + (y - 1) * 2);
-                Console.Write("*---*");
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 4 + (y - 1) * 2);
-                Console.Write("|");
-                Console.SetCursorPosition(20 + ((x - 1) * 4), 4 + (y - 1) * 2);
-                Console.Write("|");
-                Console.SetCursorPosition(16 + ((x - 1) * 4), 5 + (y - 1) * 2);
-                Console.Write("*---*");
+                ForegroundColor = selectionColour;
+                SetCursorPosition(16 + ((x - 1) * 4), 3 + (y - 1) * 2);
+                Write("*---*");
+                SetCursorPosition(16 + ((x - 1) * 4), 4 + (y - 1) * 2);
+                Write("|");
+                SetCursorPosition(20 + ((x - 1) * 4), 4 + (y - 1) * 2);
+                Write("|");
+                SetCursorPosition(16 + ((x - 1) * 4), 5 + (y - 1) * 2);
+                Write("*---*");
             }
             while (!confirmInput.Contains(input));
             switch (x)
@@ -1206,22 +1215,25 @@ namespace Tetris
         {
             for (byte i = 0; i < BLOC; i++)
             {
-                if (complex)
+                if (complex) // if !hardDrop
                 {
                     for (byte j = 0; j < BLOC; j++)
                     {
-                        if (lowY[i] == y[j])
+                        if (lowY[i] == y[j]) // if the ghost piece overlaps with the actual piece
                         {
-                            return false;
+                            return false; // drawGhost = false
                         }
                     }
                 }
                 lowY[i] = y[i];
             }
+
             bool doFall;
+
             do
             {
                 doFall = CanFall(x, lowY, coords, false);
+
                 if (doFall)
                 {
                     for (byte i = 0; i < BLOC; i++)
@@ -1230,58 +1242,67 @@ namespace Tetris
                     }
                 }
             }
-            while (doFall == true);
-            return true;
+            while (doFall);
+
+            return true; // drawGhost = true
         }
         static bool CanFall(byte[] xByte, byte[] y, bool[,] coords, bool canMove, sbyte direction = 0)
         {
             sbyte[] x = new sbyte[BLOC];
+
             for (byte i = 0; i < BLOC; i++)
             {
                 x[i] = (sbyte)xByte[i];
             }
+
             if (canMove)
             {
                 for (byte j = 0; j < BLOC; j++) x[j] += direction;
             }
+
             for (byte i = 0; i < BLOC; i++)
             {
-                if (y[i] == HEIGHT + UP_SPARE - 1)
+                if (y[i] == HEIGHT + UP_SPARE - 1) // if height reaches the bottom
                 {
                     return false;
                 }
-                if (coords[x[i], y[i] + UP_SPARE + 1])
+
+                if (x[i] >= WIDTH + LEFT_SPARE || y[i] + 1 >= HEIGHT + UP_SPARE) // if out of coords' range
+                {
+                    return false;
+                }
+
+                if (coords[x[i], y[i] + UP_SPARE + 1]) // if there's a placed tetromino below the falling tetromino
                 {
                     return false;
                 }
             }
             return true;
         }
-        static bool GetAxisRaw(bool[,] coords, ConsoleKey input, byte[] x, byte[] y, byte WIDTH, sbyte inputDirection)
+        static bool GetAxisRaw(bool[,] coords, ConsoleKey input, byte[] x, byte[] y, byte WIDTH, sbyte direction)
         {
-            sbyte direction = 0; // -1 means left, 1 means right, 0 means neither
-            if (inputDirection == -1 && x[0] >= LEFT_SPARE && x[1] >= LEFT_SPARE && x[2] >= LEFT_SPARE && x[3] >= LEFT_SPARE)
-            {
-                direction = -1;
-            }
-            else if (inputDirection == 1 && x[0] <= WIDTH + LEFT_SPARE - 1 && x[1] <= WIDTH + LEFT_SPARE - 1 && x[2] <= WIDTH + LEFT_SPARE - 1 && x[3] <= WIDTH + LEFT_SPARE - 1)
-            {
-                direction = 1;
-            }
+            // direction: -1 = left, 0 = none, 1 = right
+
+            // check if left side or right side will be exceeded
             for (byte i = 0; i < BLOC; i++)
             {
-                if (coords[x[i] + direction, y[i] + UP_SPARE] == true)
+                if (x[i] + direction < LEFT_SPARE || x[i] + direction > WIDTH + LEFT_SPARE - 1)
+                {
+                    return false;
+                }
+                else if (coords[x[i] + direction, y[i] + UP_SPARE])
                 {
                     return false;
                 }
             }
+
             return true;
         }
         static bool CanRotate(byte[] x, byte[] y, bool[,] coords, sbyte[] deltaX, sbyte[] deltaY)
         {
             for (byte i = 0; i < BLOC; i++)
             {
-                if (coords[x[i] + deltaX[i], y[i] + deltaY[i] + UP_SPARE] == true) // if hit something
+                if (coords[x[i] + deltaX[i], y[i] + deltaY[i] + UP_SPARE]) // if hit placed tetromino
                 {
                     return false;
                 }
@@ -1298,10 +1319,10 @@ namespace Tetris
             {
                 for (byte h = LEFT_SPARE; h < WIDTH + LEFT_SPARE; h++)
                 {
-                    Console.SetCursorPosition(6 + ((h - LEFT_SPARE) * 2), v + 2 - UP_SPARE);
-                    Console.ForegroundColor = colours[h, v + UP_SPARE];
-                    if (coords[h, v + UP_SPARE] == true) Console.Write(BLOCK);
-                    else Console.Write(BLANK);
+                    SetCursorPosition(6 + ((h - LEFT_SPARE) * 2), v + 2 - UP_SPARE);
+                    ForegroundColor = colours[h, v + UP_SPARE];
+                    if (coords[h, v + UP_SPARE] == true) Write(BLOCK);
+                    else Write(BLANK);
                 }
             }
         }
@@ -1320,8 +1341,8 @@ namespace Tetris
             {
                 if (y[i] > 1)
                 {
-                    Console.SetCursorPosition(6 + ((x[i] - LEFT_SPARE) * 2), y[i] + 2 - UP_SPARE);
-                    Console.Write(block);
+                    SetCursorPosition(6 + ((x[i] - LEFT_SPARE) * 2), y[i] + 2 - UP_SPARE);
+                    Write(block);
                 }
             }
         }
@@ -1341,53 +1362,53 @@ namespace Tetris
             for (byte v = 0; v < 12; v += 5)
             {
                 // clear previous preview
-                Console.SetCursorPosition(33, 4 + v);
-                Console.Write("        ");
-                Console.SetCursorPosition(33, 5 + v);
-                Console.Write("        ");
-                Console.SetCursorPosition(33, 4 + v);
+                SetCursorPosition(33, 4 + v);
+                Write("        ");
+                SetCursorPosition(33, 5 + v);
+                Write("        ");
+                SetCursorPosition(33, 4 + v);
                 // draw current preview
                 switch (tetros[(v / 5) + 1])
                 {
                     case 0: // I
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Cyan;
-                        Console.Write(BLOCK + BLOCK + BLOCK + BLOCK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Cyan;
+                        Write(BLOCK + BLOCK + BLOCK + BLOCK);
                         break;
                     case 1: // L
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write(BLANK + BLANK + BLANK + BLOCK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLOCK + BLOCK + BLOCK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.DarkYellow;
+                        Write(BLANK + BLANK + BLANK + BLOCK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
                     case 2: // J
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write(BLANK + BLOCK + BLANK + BLANK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLOCK + BLOCK + BLOCK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Blue;
+                        Write(BLANK + BLOCK + BLANK + BLANK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
                     case 3: // T
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.Write(BLANK + BLANK + BLOCK + BLANK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLOCK + BLOCK + BLOCK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Magenta;
+                        Write(BLANK + BLANK + BLOCK + BLANK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
                     case 4: // O
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(BLANK + BLOCK + BLOCK + BLANK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLOCK + BLOCK + BLANK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Yellow;
+                        Write(BLANK + BLOCK + BLOCK + BLANK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
                     case 5: // S
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(BLANK + BLANK + BLOCK + BLOCK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLOCK + BLOCK + BLANK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Green;
+                        Write(BLANK + BLANK + BLOCK + BLOCK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
                     case 6: // Z
-                        if (colour == 1) Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write(BLANK + BLOCK + BLOCK + BLANK);
-                        Console.SetCursorPosition(33, 5 + v);
-                        Console.Write(BLANK + BLANK + BLOCK + BLOCK);
+                        if (colour == 1) ForegroundColor = ConsoleColor.Red;
+                        Write(BLANK + BLOCK + BLOCK + BLANK);
+                        SetCursorPosition(33, 5 + v);
+                        Write(BLANK + BLANK + BLOCK + BLOCK);
                         break;
                 }
             }
@@ -1404,17 +1425,17 @@ namespace Tetris
                 background2.Stop();
                 gameOver.Play();
             }
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.BackgroundColor = ConsoleColor.Black;
+            ForegroundColor = ConsoleColor.White;
+            BackgroundColor = ConsoleColor.Black;
             for (byte i = 0; i < HEIGHT; i++)
             {
-                Console.SetCursorPosition(6, 2 + i);
-                Console.Write("████████████████████"); // curtain dropping
+                SetCursorPosition(6, 2 + i);
+                Write("████████████████████"); // curtain dropping
                 Thread.Sleep(CURTAIN_DROP_PAUSE);
             }
             Thread.Sleep(PAUSE);
-            Console.SetCursorPosition(16, 6);
-            Console.WriteLine(@"
+            SetCursorPosition(16, 6);
+            WriteLine(@"
                                                 
    ___   _   __  __ ___    _____   _____ ___    
   / __| /_\ |  \/  | __|  / _ \ \ / / __| _ \   
@@ -1423,16 +1444,16 @@ namespace Tetris
                                                 
                                                 ");
             Thread.Sleep(1000);
-            Console.ReadKey(true);
-            Console.Clear();
-            Console.Write("Press any key to continue  .\r\n                           T\r\n                          ( )\r\n                          <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
+            ReadKey(true);
+            Clear();
+            Write("Press any key to continue  .\r\n                           T\r\n                          ( )\r\n                          <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
             // https://www.asciiart.eu/buildings-and-places/monuments/other
             if (music != 0) ending.Play();
-            Console.ReadKey(true);
-            Console.Clear();
+            ReadKey(true);
+            Clear();
             if (names.Count < MAX_QUANTITY)
             {
-                Console.WriteLine(@"
+                WriteLine(@"
 
 
 
@@ -1441,14 +1462,14 @@ namespace Tetris
              Yes
              No
 ");
-                Console.SetCursorPosition(49, 4);
-                Console.Write($"({score})");
+                SetCursorPosition(49, 4);
+                Write($"({score})");
                 if (scores.Count != 0)
                 {
                     if (scores[0] <= score)
                     {
-                        Console.SetCursorPosition(CURSOR_X, 3);
-                        Console.Write("New High Score! Congratulations!");
+                        SetCursorPosition(CURSOR_X, 3);
+                        Write("New High Score! Congratulations!");
                         if (music != 0)
                         {
                             ending.Stop();
@@ -1460,11 +1481,11 @@ namespace Tetris
                 byte y = Y_YES; // y position of the CURSOR
                 do
                 {
-                    Console.SetCursorPosition(CURSOR_X, y);
-                    Console.Write(">");
-                    input = Console.ReadKey(true).Key;
-                    Console.SetCursorPosition(CURSOR_X, y);
-                    Console.Write(" ");
+                    SetCursorPosition(CURSOR_X, y);
+                    Write(">");
+                    input = ReadKey(true).Key;
+                    SetCursorPosition(CURSOR_X, y);
+                    Write(" ");
                     if (upInput.Contains(input))
                     {
                         y--;
@@ -1479,35 +1500,35 @@ namespace Tetris
                 while (!confirmInput.Contains(input));
                 if (confirmInput.Contains(input) && y == Y_YES)
                 {
-                    Console.Clear();
-                    Console.SetCursorPosition(CURSOR_X, 4);
-                    Console.Write("Please Enter Your Name: ");
+                    Clear();
+                    SetCursorPosition(CURSOR_X, 4);
+                    Write("Please Enter Your Name: ");
                     char charEntered;
                     string name = "";
                     do
                     {
-                        charEntered = Console.ReadKey(true).KeyChar;
+                        charEntered = ReadKey(true).KeyChar;
                         if (charEntered == '\b')
                         {
                             if (name.Length > 0)
                             {
                                 name = name.Remove(name.Length - 1);
-                                Console.CursorLeft--;
-                                Console.Write(" ");
-                                Console.CursorLeft--;
+                                CursorLeft--;
+                                Write(" ");
+                                CursorLeft--;
                             }
                         }
                         else if (name.Length <= MAX_LENGTH && charEntered != ' ')
                         {
                             name += Convert.ToString(charEntered);
-                            Console.Write(charEntered);
+                            Write(charEntered);
                         }
                     }
                     while (charEntered != '\r');
                     if (name == "\r") name = "Anonymous";
                     else name = name.Remove(name.Length - 1); // the last char detected is "enter", therefore it needs to be removed
-                    Console.Clear();
-                    Console.WriteLine("Saving . . .");
+                    Clear();
+                    WriteLine("Saving . . .");
                     do
                     {
                         if (names.Count != 0)
@@ -1540,24 +1561,28 @@ namespace Tetris
                     {
                         File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", $"{names[i]} {scores[i]}\r");
                     }
-                    Console.Clear();
-                    Console.WriteLine("Saved");
+                    Clear();
+                    WriteLine("Saved");
                     Thread.Sleep(PAUSE);
                 }
             }
         }
+
+        #endregion
+
+        #region Settings
         static void Settings()
         {
             byte selection;
-            Console.Clear();
-            Console.WriteLine(@"
+            Clear();
+            WriteLine(@"
       ___      _   _   _              
      / __| ___| |_| |_(_)_ _  __ _ ___
      \__ \/ -_)  _|  _| | ' \/ _` (_-<
      |___/\___|\__|\__|_|_||_\__, /__/
                              |___/    
 ");
-            Console.WriteLine(@"
+            WriteLine(@"
      Background Music: 
      Invert Movement Keys: 
      Show Ghost Pieces: 
@@ -1576,17 +1601,17 @@ namespace Tetris
                 UpdateSettingsWord(i);
             }
             ConsoleKey input;
-            Console.ReadKey(true);
+            ReadKey(true);
             byte y = 8;
             selection = (byte)(y - 8);
             UpdateSettingsWord(selection);
             while (true)
             {
-                while (Console.KeyAvailable)
+                while (KeyAvailable)
                 {
-                    input = Console.ReadKey(true).Key;
-                    Console.SetCursorPosition(3, y);
-                    Console.Write(" ");
+                    input = ReadKey(true).Key;
+                    SetCursorPosition(3, y);
+                    Write(" ");
                     if (upInput.Contains(input) && y != 8)
                     {
                         y--;
@@ -1617,10 +1642,10 @@ namespace Tetris
                                 if (colour == 2) colour = 0;
                                 break;
                             case 4:
-                                Console.SetCursorPosition(24, y);
-                                Console.Write("Are you sure? (Y/N)");
-                                input = Console.ReadKey(true).Key;
-                                Console.Write("");
+                                SetCursorPosition(24, y);
+                                Write("Are you sure? (Y/N)");
+                                input = ReadKey(true).Key;
+                                Write("");
                                 if (input == ConsoleKey.Y)
                                 {
                                     music = 1;
@@ -1629,24 +1654,24 @@ namespace Tetris
                                     colour = 1;
                                     File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", Convert.ToString(music) + Convert.ToString(invert) + Convert.ToString(ghost) + Convert.ToString(colour));
                                 }
-                                Console.SetCursorPosition(24, y);
-                                Console.Write("                   ");
+                                SetCursorPosition(24, y);
+                                Write("                   ");
                                 UpdateSettingsWord();
                                 break;
                             case 5:
-                                Console.SetCursorPosition(24, y);
-                                Console.Write("Are you sure? (Y/N)");
-                                input = Console.ReadKey(true).Key;
+                                SetCursorPosition(24, y);
+                                Write("Are you sure? (Y/N)");
+                                input = ReadKey(true).Key;
                                 if (input == ConsoleKey.Y)
                                 {
                                     File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                                    Console.Clear();
-                                    Console.WriteLine("Exiting to clear the scoreboard");
+                                    Clear();
+                                    WriteLine("Exiting to clear the scoreboard");
                                     Thread.Sleep(PAUSE * 2);
                                     Environment.Exit(0);
                                 }
-                                Console.SetCursorPosition(24, y);
-                                Console.Write("                   ");
+                                SetCursorPosition(24, y);
+                                Write("                   ");
                                 break;
                         }
                         UpdateSettingsWord(selection);
@@ -1654,17 +1679,17 @@ namespace Tetris
                     else if (exitInput.Contains(input))
                     {
                         File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", $"{music}{invert}{ghost}{colour}");
-                        Console.Clear();
-                        Console.WriteLine("Saved");
+                        Clear();
+                        WriteLine("Saved");
                         Thread.Sleep(PAUSE);
                         return;
                     }
                 }
-                Console.SetCursorPosition(3, y);
-                Console.Write(">");
+                SetCursorPosition(3, y);
+                Write(">");
                 Thread.Sleep(REFRESH_RATE);
             }
-            Console.ReadKey(true);
+            ReadKey(true);
         }
         static void UpdateSettingsWord(byte selection = 255)
         {
@@ -1680,106 +1705,41 @@ namespace Tetris
                 switch (selection)
                 {
                     case 0:
-                        Console.SetCursorPosition(23, 8);
+                        SetCursorPosition(23, 8);
                         switch (music)
                         {
-                            case 0: Console.Write("None   "); break;
-                            case 1: Console.Write("Music 1"); break;
-                            case 2: Console.Write("Music 2"); break;
-                            case 3: Console.Write("Music 3"); break;
+                            case 0: Write("None   "); break;
+                            case 1: Write("Music 1"); break;
+                            case 2: Write("Music 2"); break;
+                            case 3: Write("Music 3"); break;
                         }
                         break;
                     case 1:
-                        Console.SetCursorPosition(27, 9);
+                        SetCursorPosition(27, 9);
                         switch (invert)
                         {
-                            case 1: Console.Write("True "); break;
-                            case 0: Console.Write("False"); break;
+                            case 1: Write("True "); break;
+                            case 0: Write("False"); break;
                         }
                         break;
                     case 2:
-                        Console.SetCursorPosition(24, 10);
+                        SetCursorPosition(24, 10);
                         switch (ghost)
                         {
-                            case 1: Console.Write("True "); break;
-                            case 0: Console.Write("False"); break;
+                            case 1: Write("True "); break;
+                            case 0: Write("False"); break;
                         }
                         break;
                     case 3:
-                        Console.SetCursorPosition(14, 11);
+                        SetCursorPosition(14, 11);
                         switch (colour)
                         {
-                            case 0: Console.Write("dichromatic  "); break;
-                            case 1: Console.Write("multicoloured"); break;
+                            case 0: Write("dichromatic  "); break;
+                            case 1: Write("multicoloured"); break;
                         }
                         break;
                 }
                 selection++;
-            }
-        }
-        static void Scoreboard()
-        {
-            Console.Clear();
-            Console.WriteLine(@"
-      ___                 _                      _ 
-     / __| __ ___ _ _ ___| |__  ___  __ _ _ _ __| |
-     \__ \/ _/ _ \ '_/ -_) '_ \/ _ \/ _` | '_/ _` |
-     |___/\__\___/_| \___|_.__/\___/\__,_|_| \__,_|
-                                               
-");
-            Console.SetCursorPosition(8, 7);
-            Console.Write("Name");
-            Console.SetCursorPosition(32, 7);
-            Console.Write("Score");
-
-            for (byte i = 0; i < names.Count; i++)
-            {
-                Console.SetCursorPosition(8, i + 8);
-                Console.Write(names[i]);
-                Console.SetCursorPosition(32, i + 8);
-                Console.Write(scores[i]);
-            }
-            Console.ReadKey(true);
-        }
-        static void LoadScoreboard()
-        {
-            string scoreboardData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt");
-            if (scoreboardData != "") // if it's not empty
-            {
-                try
-                {
-                    string[] scoreboardLines = scoreboardData.Split("\r"); // divide into each line
-                    Array.Resize(ref scoreboardLines, scoreboardLines.Length - 1); // the last line is empty, remove it
-                    string[] eachNameAndScore;
-                    for (byte i = 0; i < scoreboardLines.Length; i++)
-                    {
-                        eachNameAndScore = scoreboardLines[i].Split(' '); // divide into mixed names and scores
-                        names.Add(eachNameAndScore[0]);
-                        scores.Add(Convert.ToInt32(eachNameAndScore[1]));
-                    }
-                    if (names.Count > 255)
-                    {
-                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                        Console.Clear();
-                        Console.WriteLine(@"
-    You just changed data in the scoreboard,
-    And now there are too much data to process.
-    The scoreboard is cleared now,
-    You just need to restart the game to play.
-
-");
-                        Thread.Sleep(PAUSE);
-                        Console.WriteLine("    Never edit the game file again");
-                        for (byte i = 0; i < 255; i++)
-                        {
-                            Console.ReadKey(true);
-                        }
-                    }
-                }
-                catch // if the file corrupted
-                {
-                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                }
             }
         }
         static void LoadSettings()
@@ -1801,19 +1761,92 @@ namespace Tetris
                 File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", Convert.ToString(music) + Convert.ToString(invert) + Convert.ToString(ghost) + Convert.ToString(colour));
             }
         }
+
+        #endregion
+
+        #region Scoreboard
+        static void Scoreboard()
+        {
+            Clear();
+            WriteLine(@"
+      ___                 _                      _ 
+     / __| __ ___ _ _ ___| |__  ___  __ _ _ _ __| |
+     \__ \/ _/ _ \ '_/ -_) '_ \/ _ \/ _` | '_/ _` |
+     |___/\__\___/_| \___|_.__/\___/\__,_|_| \__,_|
+                                               
+");
+            SetCursorPosition(8, 7);
+            Write("Name");
+            SetCursorPosition(32, 7);
+            Write("Score");
+
+            for (byte i = 0; i < names.Count; i++)
+            {
+                SetCursorPosition(8, i + 8);
+                Write(names[i]);
+                SetCursorPosition(32, i + 8);
+                Write(scores[i]);
+            }
+            ReadKey(true);
+        }
+        static void LoadScoreboard()
+        {
+            string scoreboardData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt");
+            if (scoreboardData != "") // if it's not empty
+            {
+                try
+                {
+                    string[] scoreboardLines = scoreboardData.Split("\r"); // divide into each line
+                    Array.Resize(ref scoreboardLines, scoreboardLines.Length - 1); // the last line is empty, remove it
+                    string[] eachNameAndScore;
+                    for (byte i = 0; i < scoreboardLines.Length; i++)
+                    {
+                        eachNameAndScore = scoreboardLines[i].Split(' '); // divide into mixed names and scores
+                        names.Add(eachNameAndScore[0]);
+                        scores.Add(Convert.ToInt32(eachNameAndScore[1]));
+                    }
+                    if (names.Count > 255)
+                    {
+                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
+                        Clear();
+                        WriteLine(@"
+    You just changed data in the scoreboard,
+    And now there are too much data to process.
+    The scoreboard is cleared now,
+    You just need to restart the game to play.
+
+");
+                        Thread.Sleep(PAUSE);
+                        WriteLine("    Never edit the game file again");
+                        for (byte i = 0; i < 255; i++)
+                        {
+                            ReadKey(true);
+                        }
+                    }
+                }
+                catch // if the file corrupted
+                {
+                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
+                }
+            }
+        }
+
+        #endregion
+
+        #region Tutorial
         static void Tutorial()
         {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.White;
+            Clear();
+            ForegroundColor = ConsoleColor.White;
             ConsoleKey input;
             bool page1 = false; // this will be true if the player has seen page1 already
             byte page = 0;
             Page0();
             while (true)
             {
-                while (Console.KeyAvailable)
+                while (KeyAvailable)
                 {
-                    input = Console.ReadKey(true).Key;
+                    input = ReadKey(true).Key;
                     if (upInput.Contains(input) && page >= 1)
                     {
                         page--;
@@ -1864,8 +1897,8 @@ namespace Tetris
         }
         static void Page0()
         {
-            Console.Clear();
-            Console.Write(@"0
+            Clear();
+            Write(@"0
      Press <- and -> to flip pages   Press Esc to exit at any time
      #════════════════════#   +------------+
      ║                    ║   |            |
@@ -1909,87 +1942,87 @@ namespace Tetris
             }
             byte x = 4, y = 10; // x and y level for showing tetrominoes, used for setting CURSOR location
             byte xIncrement = 12;
-            Console.Clear();
-            Console.Write(@"1
+            Clear();
+            Write(@"1
     The goal of this game is to earn as much score as possible. To earn score,
     you need to control the ");
             HighlightWord(" tetrominoes ");
-            Console.Write(@" so that they fill a complete line.
+            Write(@" so that they fill a complete line.
     Once a line is filled, it will be cleared automatically, and you 
     will earn score depending on how many line you cleared at a time.
     If your");
             HighlightWord(" tetromino ");
-            Console.Write(@" lands and touches the ceiling, the game ends.
+            Write(@" lands and touches the ceiling, the game ends.
 
 
     Here are the seven types of ");
             HighlightWord(" tetrominoes ");
-            Console.WriteLine(" , each consisting of 4 blocks");
+            WriteLine(" , each consisting of 4 blocks");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("████████");
+            if (colour != 0) ForegroundColor = ConsoleColor.Cyan;
+            SetCursorPosition(x, y + 2);
+            Write("████████");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.DarkYellow;
+            if (colour != 0) ForegroundColor = ConsoleColor.DarkYellow;
             x += xIncrement;
-            Console.SetCursorPosition(x, y);
-            Console.Write("██");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("██");
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("████");
+            SetCursorPosition(x, y);
+            Write("██");
+            SetCursorPosition(x, y + 1);
+            Write("██");
+            SetCursorPosition(x, y + 2);
+            Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Green;
+            if (colour != 0) ForegroundColor = ConsoleColor.Green;
             x += xIncrement;
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("████");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("  ████");
+            SetCursorPosition(x, y + 2);
+            Write("████");
+            SetCursorPosition(x, y + 1);
+            Write("  ████");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Magenta;
+            if (colour != 0) ForegroundColor = ConsoleColor.Magenta;
             x += xIncrement;
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("██████");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("  ██  ");
+            SetCursorPosition(x, y + 2);
+            Write("██████");
+            SetCursorPosition(x, y + 1);
+            Write("  ██  ");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Red;
+            if (colour != 0) ForegroundColor = ConsoleColor.Red;
             x += xIncrement;
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("  ████");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("████");
+            SetCursorPosition(x, y + 2);
+            Write("  ████");
+            SetCursorPosition(x, y + 1);
+            Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Blue;
+            if (colour != 0) ForegroundColor = ConsoleColor.Blue;
             x += xIncrement;
-            Console.SetCursorPosition(x, y);
-            Console.Write("  ██");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("  ██");
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("████");
+            SetCursorPosition(x, y);
+            Write("  ██");
+            SetCursorPosition(x, y + 1);
+            Write("  ██");
+            SetCursorPosition(x, y + 2);
+            Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) Console.ForegroundColor = ConsoleColor.Yellow;
+            if (colour != 0) ForegroundColor = ConsoleColor.Yellow;
             x += xIncrement;
-            Console.SetCursorPosition(x, y + 2);
-            Console.Write("████");
-            Console.SetCursorPosition(x, y + 1);
-            Console.Write("████");
+            SetCursorPosition(x, y + 2);
+            Write("████");
+            SetCursorPosition(x, y + 1);
+            Write("████");
 
-            Console.ForegroundColor = ConsoleColor.White;
+            ForegroundColor = ConsoleColor.White;
             return true;
         }
         static void Page2()
         {
-            Console.Clear();
-            Console.Write(@"2
+            Clear();
+            Write(@"2
     Here's the list of controls:
     A, D or <, > to move left and right
     W or ^ or Z or X to rotate clockwise
@@ -1997,7 +2030,7 @@ namespace Tetris
     Spacebar to instantly drop
     Esc or P to pause the game
     Backspace to exit the game");
-            Console.WriteLine(@"
+            WriteLine(@"
     . -------------------------------------------------------------------.        
     | [Esc] [F1][F2][F3][F4][F5][F6][F7][F8][F9][F0][F10][F11][F12] o o o|        
     |                                                                    |        
@@ -2016,167 +2049,167 @@ namespace Tetris
         {
             byte tick = 0;
             byte x = 4, y = 8; // x and y of the upper-left keyboard corner
-            Console.SetCursorPosition(10, y + 10);
-            Console.Write("'N' to finish             ");
+            SetCursorPosition(10, y + 10);
+            Write("'N' to finish             ");
             ConsoleKey input;
             while (true)
             {
-                while (Console.KeyAvailable)
+                while (KeyAvailable)
                 {
-                    input = Console.ReadKey(true).Key;
+                    input = ReadKey(true).Key;
                     if (input == ConsoleKey.Z)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 8, y + 6);
-                        Console.Write("[Z]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Rotate Clockwise             ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 8, y + 6);
+                        Write("[Z]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Rotate Clockwise             ");
                     }
                     else if (input == ConsoleKey.X)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 11, y + 6);
-                        Console.Write("[X]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Rotate Clockwise             ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 11, y + 6);
+                        Write("[X]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Rotate Clockwise             ");
                     }
                     else if (input == ConsoleKey.A)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 7, y + 5);
-                        Console.Write("[A]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Move Left                    ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 7, y + 5);
+                        Write("[A]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Move Left                    ");
                     }
                     else if (input == ConsoleKey.D)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 13, y + 5);
-                        Console.Write("[D]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Move Right                   ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 13, y + 5);
+                        Write("[D]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Move Right                   ");
                     }
                     else if (input == ConsoleKey.W)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 9, y + 4);
-                        Console.Write("[W]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Rotate Clockwise             ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 9, y + 4);
+                        Write("[W]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Rotate Clockwise             ");
                     }
                     else if (input == ConsoleKey.S)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 10, y + 5);
-                        Console.Write("[S]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Drop Soft                    ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 10, y + 5);
+                        Write("[S]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Drop Soft                    ");
                     }
                     else if (input == ConsoleKey.Spacebar)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 11, y + 7);
-                        Console.Write("[________________________]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Drop Hard                    ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 11, y + 7);
+                        Write("[________________________]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Drop Hard                    ");
                     }
                     else if (input == ConsoleKey.LeftArrow)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 47, y + 7);
-                        Console.Write("[<]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Move Left                    ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 47, y + 7);
+                        Write("[<]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Move Left                    ");
                     }
                     else if (input == ConsoleKey.RightArrow)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 53, y + 7);
-                        Console.Write("[>]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Move Right                   ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 53, y + 7);
+                        Write("[>]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Move Right                   ");
                     }
                     else if (input == ConsoleKey.UpArrow)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 50, y + 6);
-                        Console.Write("[^]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Rotate Clockwise             ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 50, y + 6);
+                        Write("[^]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Rotate Clockwise             ");
                     }
                     else if (input == ConsoleKey.DownArrow)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 50, y + 7);
-                        Console.Write("[v]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Drop Soft                    ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 50, y + 7);
+                        Write("[v]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Drop Soft                    ");
                     }
                     else if (input == ConsoleKey.Escape)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 2, y + 1);
-                        Console.Write("[Esc]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Pause                        ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 2, y + 1);
+                        Write("[Esc]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Pause                        ");
                     }
                     else if (input == ConsoleKey.P)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 33, y + 4);
-                        Console.Write("[P]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Pause                        ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 33, y + 4);
+                        Write("[P]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Pause                        ");
                     }
                     else if (input == ConsoleKey.Backspace)
                     {
-                        Console.BackgroundColor = ConsoleColor.DarkGray;
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.SetCursorPosition(x + 41, y + 3);
-                        Console.Write("[_<_]");
-                        Console.BackgroundColor = ConsoleColor.Black;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.SetCursorPosition(x, y + 9);
-                        Console.WriteLine("Exit                         ");
+                        BackgroundColor = ConsoleColor.DarkGray;
+                        ForegroundColor = ConsoleColor.Black;
+                        SetCursorPosition(x + 41, y + 3);
+                        Write("[_<_]");
+                        BackgroundColor = ConsoleColor.Black;
+                        ForegroundColor = ConsoleColor.White;
+                        SetCursorPosition(x, y + 9);
+                        WriteLine("Exit                         ");
 
                     }
                     else if (input == ConsoleKey.N)
@@ -2188,8 +2221,8 @@ namespace Tetris
                 tick++;
                 if (tick == 28)
                 {
-                    Console.SetCursorPosition(0, y - 1);
-                    Console.WriteLine(@"
+                    SetCursorPosition(0, y - 1);
+                    WriteLine(@"
     . -------------------------------------------------------------------.        
     | [Esc] [F1][F2][F3][F4][F5][F6][F7][F8][F9][F0][F10][F11][F12] o o o|        
     |                                                                    |        
@@ -2206,8 +2239,8 @@ namespace Tetris
         }
         static void Page3()
         {
-            Console.Clear();
-            Console.Write(@"3           LEVEL 0 <- Current level
+            Clear();
+            Write(@"3           LEVEL 0 <- Current level
      #════════════════════#   +------------+
      ║     GAME PANEL     ║   |  PREVIEW   |
      ║                    ║   |            |
@@ -2239,11 +2272,11 @@ namespace Tetris
         }
         static void Page4()
         {
-            Console.Clear();
-            Console.Write("4                         <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
+            Clear();
+            Write("4                         <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
             // https://www.asciiart.eu/buildings-and-places/monuments/other
-            Console.WriteLine();
-            Console.WriteLine(@"
+            WriteLine();
+            WriteLine(@"
     Don't forget to record your score after playing!
 
     Good Luck Have Fun!");
@@ -2254,11 +2287,13 @@ namespace Tetris
         }
         static void HighlightWord(string word)
         {
-            Console.BackgroundColor = ConsoleColor.White;
-            Console.ForegroundColor = ConsoleColor.Black;
-            Console.Write(word); // highlighting the word
-            Console.BackgroundColor = ConsoleColor.Black;
-            Console.ForegroundColor = ConsoleColor.White;
+            BackgroundColor = ConsoleColor.White;
+            ForegroundColor = ConsoleColor.Black;
+            Write(word); // highlighting the word
+            BackgroundColor = ConsoleColor.Black;
+            ForegroundColor = ConsoleColor.White;
         }
+
+        #endregion
     }
 }
