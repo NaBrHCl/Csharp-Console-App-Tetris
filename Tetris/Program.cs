@@ -9,30 +9,30 @@ using static System.Console;
 
 namespace Tetris
 {
-    internal class Program
+    public class Program
     {
         #region Variable Declaration
         // score
         static int score = 0;
 
+        static Settings settings;
+
         // reserving ( these aren't the actual dimensions, these are for checking if the tetromino will be out of border )
-        //const byte LEFT_SPARE = 3;
-        //const byte RIGHT_SPARE = 2;
         const byte UP_SPARE = 2;
-        //const byte DOWN_SPARE = 2;
 
         // some keybinds
         static List<ConsoleKey> upInput = new() { ConsoleKey.UpArrow, ConsoleKey.W, ConsoleKey.LeftArrow, ConsoleKey.A };
         static List<ConsoleKey> downInput = new() { ConsoleKey.DownArrow, ConsoleKey.S, ConsoleKey.RightArrow, ConsoleKey.D };
         static List<ConsoleKey> confirmInput = new() { ConsoleKey.Enter, ConsoleKey.Spacebar, ConsoleKey.Z };
         static List<ConsoleKey> exitInput = new() { ConsoleKey.Escape, ConsoleKey.Backspace, ConsoleKey.X };
+
         // be aware when changing these values, you might need to change the part below "5943"
         static ConsoleKey[] moveLeft = { ConsoleKey.A, ConsoleKey.LeftArrow };
         static ConsoleKey[] moveRight = { ConsoleKey.D, ConsoleKey.RightArrow };
 
-        // music
-        // background is normal game music, background2 is intense game music, ending is the game over music
-        // highScore is the game over music if the player gets a new high score, gameOver is the game over sound effect
+        // _music
+        // background is normal game _music, background2 is intense game _music, ending is the game over _music
+        // highScore is the game over _music if the player gets a new high score, gameOver is the game over sound effect
         static SoundPlayer background = new(), background2 = new(), ending = new(), highScore = new(), gameOver = new();
 
         // time
@@ -62,10 +62,6 @@ namespace Tetris
         const ushort MAX_LENGTH = 15; // name length allowed
         static List<string> names = new();
         static List<int> scores = new();
-        static byte music; // whether play music and sounds or not / which piece to play
-        static byte invert; // whether invert left and right movement keys
-        static byte ghost; // whether show ghost pieces
-        static byte colour; // whether black and white or colourful
 
         #endregion
 
@@ -76,7 +72,9 @@ namespace Tetris
             // tuple for coordinates!
             // x: 0-19; y: 0-25
 
-            if (invert == 1) // 5943 ( invert keys )
+            settings = new Settings(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE);
+
+            if (settings.Invert) // 5943 ( _invert keys )
             {
                 moveLeft[0] = ConsoleKey.D;
                 moveLeft[1] = ConsoleKey.RightArrow;
@@ -88,7 +86,7 @@ namespace Tetris
             ForegroundColor = ConsoleColor.White;
 
             // loading
-            LoadSettings();
+            settings.Load();
             LoadScoreboard();
 
             byte selection;
@@ -105,7 +103,7 @@ namespace Tetris
                         sbyte levelSelected = LevelSelection();
                         if (levelSelected != -1) NewGame((byte)levelSelected);
                         break;
-                    case 1: Settings(); break;
+                    case 1: settings.Init(); break;
                     case 2: Scoreboard(); break;
                     case 3: Tutorial(); break;
                 }
@@ -119,12 +117,12 @@ namespace Tetris
         #region Main Game
         static byte Start() // title screen
         {
-            // music ( it's placed in Start instead of Main, this way the music changes without the game reopening if the player changes it in the settings)
-            if (music != 0)
+            // _music ( it's placed in Start instead of Main, this way the _music changes without the game reopening if the player changes it in the settings)
+            if (settings.Music != 0)
             {
-                background.SoundLocation = AppDomain.CurrentDomain.BaseDirectory + $"sounds\\Music{music}.wav";
+                background.SoundLocation = AppDomain.CurrentDomain.BaseDirectory + $"sounds\\Music{settings.Music}.wav";
                 background.Load();
-                background2.SoundLocation = AppDomain.CurrentDomain.BaseDirectory + $"sounds\\Fast{music}.wav";
+                background2.SoundLocation = AppDomain.CurrentDomain.BaseDirectory + $"sounds\\Fast{settings.Music}.wav";
                 background2.Load();
                 ending.SoundLocation = AppDomain.CurrentDomain.BaseDirectory + "sounds\\Ending.wav";
                 ending.Load();
@@ -137,7 +135,7 @@ namespace Tetris
             }
             else
             {
-                // if the game starts with music, but the player goes to settings and turns it off, the music will stop
+                // if the game starts with _music, but the player goes to settings and turns it off, the _music will stop
                 background.Stop();
             }
 
@@ -214,7 +212,6 @@ namespace Tetris
             List<ConsoleKey> konami2 = new() { ConsoleKey.UpArrow, ConsoleKey.UpArrow, ConsoleKey.DownArrow, ConsoleKey.DownArrow,
             ConsoleKey.LeftArrow, ConsoleKey.RightArrow, ConsoleKey.LeftArrow, ConsoleKey.RightArrow, ConsoleKey.Z, ConsoleKey.X };
 
-
             // statistics
             score = 0;
             // changing level won't result in an actual change in the speed, level is dependent on lines, which controls the speed
@@ -223,10 +220,10 @@ namespace Tetris
 
             // detection
             bool hardDrop = false; // true if the hard drop key is pressed
-            bool drawGhost = false; // ghost pieces won't be printed if it overlaps with the actual piece
+            bool drawGhost = false; // _ghost pieces won't be printed if it overlaps with the actual piece
             bool dropKeyPress = false; // true if the soft drop key is pressed
             bool ifPause = false; // true if the pause key is pressed
-            bool intense = false; // intense = close to losing, play intense music
+            bool intense = false; // intense = close to losing, play intense _music
 
             // tick
             const byte MAX_TICK = 31; // the greater the MAX_TICK, the slower the game, default is 31
@@ -260,7 +257,7 @@ namespace Tetris
             byte pose = 0; // pose equal 0 when tetromino is generated
             byte highScorePosX; // x position for printing high score (it varies)
             const string NO_HIGHSCORE_MSG = "N/A"; // what it will print if there's no high score yet
-            const byte INTENSE_Y = 8 + UP_SPARE; // if the player reaches this line, the intense music plays
+            const byte INTENSE_Y = 8 + UP_SPARE; // if the player reaches this line, the intense _music plays
             bool canMove = false; // if the player can move left or right
             const byte MAX_POSE = 4; // number of poses allowed
             const byte MAX_LINE_CLEAR = 4; // max number of lines that can be cleared at a time 
@@ -431,11 +428,11 @@ namespace Tetris
                                 for (byte h = 0; h < WIDTH; h++)
                                 {
                                     coords[h, yFilledLine] = false; // clear the filled line (value)
-                                    colours[h, yFilledLine] = ConsoleColor.Black; // clear the filled line (colour)
+                                    colours[h, yFilledLine] = ConsoleColor.Black; // clear the filled line (_colour)
                                     for (byte v2 = yFilledLine; v2 > 0; v2--) // for the filled line and each line above it
                                     {
                                         coords[h, v2] = coords[h, v2 - 1]; // line below = line above (copying value)
-                                        colours[h, v2] = colours[h, v2 - 1]; // line below = line above (copying colour)
+                                        colours[h, v2] = colours[h, v2 - 1]; // line below = line above (copying _colour)
                                     }
                                 }
                                 DrawLines(yFilledLine, coords, colours, WIDTH);
@@ -554,7 +551,7 @@ namespace Tetris
                     tetros.Add(Dice(tetros[BLOC - 1])); // which type of tetro to generate
                     tetros.RemoveAt(0); // remove the one generated already
                     DrawPreview(tetros);
-                    switch (tetros[0]) // initialise tetromino blocks' position & colour
+                    switch (tetros[0]) // initialise tetromino blocks' position & _colour
                     {
                         case 0: // I               ████████
                             x[0] = 3; y[0] = UP_SPARE; //  
@@ -614,12 +611,12 @@ namespace Tetris
                             break;
                     }
 
-                    if (colour == 0) // for dicromatic mode
+                    if (!settings.Colour) // for dicromatic mode
                     {
                         ForegroundColor = ConsoleColor.White;
                     }
 
-                    if (music != 0)
+                    if (settings.Music != 0)
                     {
                         if (!intense) // if not intense
                         {
@@ -903,7 +900,7 @@ namespace Tetris
                 if (!hardDrop) drawGhost = GetLowestPos(x, y, coords, true);
                 else drawGhost = GetLowestPos(x, y, coords);
 
-                if (drawGhost && ghost == 1)
+                if (drawGhost && settings.Ghost)
                 {
                     ConsoleColor previousColor = ForegroundColor;
                     ForegroundColor = ConsoleColor.DarkGray;
@@ -963,7 +960,7 @@ namespace Tetris
                 {
                     Thread.Sleep(pauseTime);
                 }
-                if (ghost == 1 && drawGhost && !hardDrop)
+                if (settings.Ghost && drawGhost && !hardDrop)
                 {
                     Draw(x, lowY, false);
                 }
@@ -1081,7 +1078,7 @@ namespace Tetris
                 *---*---*---*   *---*
                 | 6 | 7 | 8 |
                 *---*---*---*");
-            if (colour != 0) ForegroundColor = ConsoleColor.Red;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Red;
             else ForegroundColor = ConsoleColor.DarkGray;
             SetCursorPosition(16, 3);
             Write("*---*");
@@ -1126,7 +1123,7 @@ namespace Tetris
                     y = 2;
                 }
                 ConsoleColor selectionColour = ConsoleColor.White;
-                if (colour != 0)
+                if (settings.Colour)
                 {
                     byte colourNum = Dice();
                     switch (colourNum)
@@ -1219,7 +1216,7 @@ namespace Tetris
                 {
                     for (byte j = 0; j < BLOC; j++)
                     {
-                        if (lowY[i] == y[j]) // if the ghost piece overlaps with the actual piece
+                        if (lowY[i] == y[j]) // if the _ghost piece overlaps with the actual piece
                         {
                             return false; // drawGhost = false
                         }
@@ -1364,41 +1361,47 @@ namespace Tetris
                 switch (tetros[(v / 5) + 1])
                 {
                     case 0: // I
-                        if (colour == 1) ForegroundColor = ConsoleColor.Cyan;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Cyan;
                         Write(BLOCK + BLOCK + BLOCK + BLOCK);
                         break;
+
                     case 1: // L
-                        if (colour == 1) ForegroundColor = ConsoleColor.DarkYellow;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.DarkYellow;
                         Write(BLANK + BLANK + BLANK + BLOCK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
+
                     case 2: // J
-                        if (colour == 1) ForegroundColor = ConsoleColor.Blue;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Blue;
                         Write(BLANK + BLOCK + BLANK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
+
                     case 3: // T
-                        if (colour == 1) ForegroundColor = ConsoleColor.Magenta;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Magenta;
                         Write(BLANK + BLANK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
+
                     case 4: // O
-                        if (colour == 1) ForegroundColor = ConsoleColor.Yellow;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Yellow;
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
+
                     case 5: // S
-                        if (colour == 1) ForegroundColor = ConsoleColor.Green;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Green;
                         Write(BLANK + BLANK + BLOCK + BLOCK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
+
                     case 6: // Z
-                        if (colour == 1) ForegroundColor = ConsoleColor.Red;
+                        if (settings.Colour) ForegroundColor = ConsoleColor.Red;
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLANK + BLOCK + BLOCK);
@@ -1412,7 +1415,7 @@ namespace Tetris
             const byte Y_NO = 7; // y position for no
             const byte CURSOR_X = 12;
             const ushort CURTAIN_DROP_PAUSE = 50; // time interval between each row of curtain falls
-            if (music != 0)
+            if (settings.Music != 0)
             {
                 background.Stop();
                 background2.Stop();
@@ -1441,7 +1444,7 @@ namespace Tetris
             Clear();
             Write("Press any key to continue  .\r\n                           T\r\n                          ( )\r\n                          <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
             // https://www.asciiart.eu/buildings-and-places/monuments/other
-            if (music != 0) ending.Play();
+            if (settings.Music != 0) ending.Play();
             ReadKey(true);
             Clear();
             if (names.Count < MAX_QUANTITY)
@@ -1463,7 +1466,7 @@ namespace Tetris
                     {
                         SetCursorPosition(CURSOR_X, 3);
                         Write("New High Score! Congratulations!");
-                        if (music != 0)
+                        if (settings.Music != 0)
                         {
                             ending.Stop();
                             highScore.Play();
@@ -1558,200 +1561,6 @@ namespace Tetris
                     WriteLine("Saved");
                     Thread.Sleep(PAUSE);
                 }
-            }
-        }
-
-        #endregion
-
-        #region Settings
-        static void Settings()
-        {
-            byte selection;
-            Clear();
-            WriteLine(@"
-      ___      _   _   _              
-     / __| ___| |_| |_(_)_ _  __ _ ___
-     \__ \/ -_)  _|  _| | ' \/ _` (_-<
-     |___/\___|\__|\__|_|_||_\__, /__/
-                             |___/    
-");
-            WriteLine(@"
-     Background Music: 
-     Invert Movement Keys: 
-     Show Ghost Pieces: 
-     Colours: 
-     [ Set to default ]
-     [Clear Scoreboard]
-
-     Press Space or Enter to switch options
-     Press ESC or BackSpace to return and save
-
-
-     Some changes will only be applied after the game restarts
-    ");
-            for (byte i = 0; i < 4; i++)
-            {
-                UpdateSettingsWord(i);
-            }
-            ConsoleKey input;
-            ReadKey(true);
-            byte y = 8;
-            selection = (byte)(y - 8);
-            UpdateSettingsWord(selection);
-            while (true)
-            {
-                while (KeyAvailable)
-                {
-                    input = ReadKey(true).Key;
-                    SetCursorPosition(3, y);
-                    Write(" ");
-                    if (upInput.Contains(input) && y != 8)
-                    {
-                        y--;
-                    }
-                    else if (downInput.Contains(input) && y != 13)
-                    {
-                        y++;
-                    }
-                    else if (confirmInput.Contains(input))
-                    {
-                        selection = (byte)(y - 8);
-                        switch (selection)
-                        {
-                            case 0:
-                                music++;
-                                if (music == 4) music = 0;
-                                break;
-                            case 1:
-                                invert++;
-                                if (invert == 2) invert = 0;
-                                break;
-                            case 2:
-                                ghost++;
-                                if (ghost == 2) ghost = 0;
-                                break;
-                            case 3:
-                                colour++;
-                                if (colour == 2) colour = 0;
-                                break;
-                            case 4:
-                                SetCursorPosition(24, y);
-                                Write("Are you sure? (Y/N)");
-                                input = ReadKey(true).Key;
-                                Write("");
-                                if (input == ConsoleKey.Y)
-                                {
-                                    music = 1;
-                                    invert = 0;
-                                    ghost = 0;
-                                    colour = 1;
-                                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", Convert.ToString(music) + Convert.ToString(invert) + Convert.ToString(ghost) + Convert.ToString(colour));
-                                }
-                                SetCursorPosition(24, y);
-                                Write("                   ");
-                                UpdateSettingsWord();
-                                break;
-                            case 5:
-                                SetCursorPosition(24, y);
-                                Write("Are you sure? (Y/N)");
-                                input = ReadKey(true).Key;
-                                if (input == ConsoleKey.Y)
-                                {
-                                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                                    Clear();
-                                    WriteLine("Exiting to clear the scoreboard");
-                                    Thread.Sleep(PAUSE * 2);
-                                    Environment.Exit(0);
-                                }
-                                SetCursorPosition(24, y);
-                                Write("                   ");
-                                break;
-                        }
-                        UpdateSettingsWord(selection);
-                    }
-                    else if (exitInput.Contains(input))
-                    {
-                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", $"{music}{invert}{ghost}{colour}");
-                        Clear();
-                        WriteLine("Saved");
-                        Thread.Sleep(PAUSE);
-                        return;
-                    }
-                }
-                SetCursorPosition(3, y);
-                Write(">");
-                Thread.Sleep(REFRESH_RATE);
-            }
-            ReadKey(true);
-        }
-        static void UpdateSettingsWord(byte selection = 255)
-        {
-            byte j; // for a loop
-            if (selection == 255)
-            {
-                j = 3;
-                selection = 0;
-            }
-            else j = 1;
-            for (byte i = 0; i < j; i++)
-            {
-                switch (selection)
-                {
-                    case 0:
-                        SetCursorPosition(23, 8);
-                        switch (music)
-                        {
-                            case 0: Write("None   "); break;
-                            case 1: Write("Music 1"); break;
-                            case 2: Write("Music 2"); break;
-                            case 3: Write("Music 3"); break;
-                        }
-                        break;
-                    case 1:
-                        SetCursorPosition(27, 9);
-                        switch (invert)
-                        {
-                            case 1: Write("True "); break;
-                            case 0: Write("False"); break;
-                        }
-                        break;
-                    case 2:
-                        SetCursorPosition(24, 10);
-                        switch (ghost)
-                        {
-                            case 1: Write("True "); break;
-                            case 0: Write("False"); break;
-                        }
-                        break;
-                    case 3:
-                        SetCursorPosition(14, 11);
-                        switch (colour)
-                        {
-                            case 0: Write("dichromatic  "); break;
-                            case 1: Write("multicoloured"); break;
-                        }
-                        break;
-                }
-                selection++;
-            }
-        }
-        static void LoadSettings()
-        {
-            try
-            {
-                string settingsData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt");
-                music = Convert.ToByte(Convert.ToString(settingsData[0]));
-                invert = Convert.ToByte(Convert.ToString(settingsData[1]));
-                ghost = Convert.ToByte(Convert.ToString(settingsData[2]));
-                colour = Convert.ToByte(Convert.ToString(settingsData[3]));
-            }
-            catch // if the file corrupted
-            {
-                music = 1;
-                invert = 0;
-                ghost = 0;
-                colour = 1;
-                File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", Convert.ToString(music) + Convert.ToString(invert) + Convert.ToString(ghost) + Convert.ToString(colour));
             }
         }
 
@@ -1953,12 +1762,12 @@ namespace Tetris
             WriteLine(" , each consisting of 4 blocks");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Cyan;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Cyan;
             SetCursorPosition(x, y + 2);
             Write("████████");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.DarkYellow;
+            if (settings.Colour) ForegroundColor = ConsoleColor.DarkYellow;
             x += xIncrement;
             SetCursorPosition(x, y);
             Write("██");
@@ -1968,7 +1777,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Green;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Green;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("████");
@@ -1976,7 +1785,7 @@ namespace Tetris
             Write("  ████");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Magenta;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Magenta;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("██████");
@@ -1984,7 +1793,7 @@ namespace Tetris
             Write("  ██  ");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Red;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Red;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("  ████");
@@ -1992,7 +1801,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Blue;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Blue;
             x += xIncrement;
             SetCursorPosition(x, y);
             Write("  ██");
@@ -2002,7 +1811,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (colour != 0) ForegroundColor = ConsoleColor.Yellow;
+            if (settings.Colour) ForegroundColor = ConsoleColor.Yellow;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("████");
