@@ -1,10 +1,4 @@
-﻿using System.ComponentModel;
-using System.Drawing.Printing;
-using System.Linq.Expressions;
-using System.Media;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
+﻿using System.Media;
 using static System.Console;
 
 namespace Tetris
@@ -63,6 +57,9 @@ namespace Tetris
         static List<string> names = new();
         static List<int> scores = new();
 
+        const string SETTINGS_PATH = "saves\\Settings.txt";
+        const string SCOREBOARD_PATH = "saves\\Scoreboard.txt";
+
         #endregion
 
         #region Game
@@ -72,7 +69,7 @@ namespace Tetris
             // tuple for coordinates!
             // x: 0-19; y: 0-25
 
-            settings = new Settings(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE);
+            settings = new Settings(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE, SETTINGS_PATH, SCOREBOARD_PATH);
 
             if (settings.InvertMovement) // 5943 ( _invertMovement keys )
             {
@@ -1565,75 +1562,6 @@ namespace Tetris
                     Clear();
                     WriteLine("Saved");
                     Thread.Sleep(PAUSE);
-                }
-            }
-        }
-
-        #endregion
-
-        #region Scoreboard
-        static void Scoreboard()
-        {
-            Clear();
-            WriteLine(@"
-      ___                 _                      _ 
-     / __| __ ___ _ _ ___| |__  ___  __ _ _ _ __| |
-     \__ \/ _/ _ \ '_/ -_) '_ \/ _ \/ _` | '_/ _` |
-     |___/\__\___/_| \___|_.__/\___/\__,_|_| \__,_|
-                                               
-");
-            SetCursorPosition(8, 7);
-            Write("Name");
-            SetCursorPosition(32, 7);
-            Write("Score");
-
-            for (byte i = 0; i < names.Count; i++)
-            {
-                SetCursorPosition(8, i + 8);
-                Write(names[i]);
-                SetCursorPosition(32, i + 8);
-                Write(scores[i]);
-            }
-            ReadKey(true);
-        }
-        static void LoadScoreboard()
-        {
-            string scoreboardData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt");
-            if (scoreboardData != "") // if it's not empty
-            {
-                try
-                {
-                    string[] scoreboardLines = scoreboardData.Split("\r"); // divide into each line
-                    Array.Resize(ref scoreboardLines, scoreboardLines.Length - 1); // the last line is empty, remove it
-                    string[] eachNameAndScore;
-                    for (byte i = 0; i < scoreboardLines.Length; i++)
-                    {
-                        eachNameAndScore = scoreboardLines[i].Split(' '); // divide into mixed names and scores
-                        names.Add(eachNameAndScore[0]);
-                        scores.Add(Convert.ToInt32(eachNameAndScore[1]));
-                    }
-                    if (names.Count > 255)
-                    {
-                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                        Clear();
-                        WriteLine(@"
-    You just changed data in the scoreboard,
-    And now there are too much data to process.
-    The scoreboard is cleared now,
-    You just need to restart the game to play.
-
-");
-                        Thread.Sleep(PAUSE);
-                        WriteLine("    Never edit the game file again");
-                        for (byte i = 0; i < 255; i++)
-                        {
-                            ReadKey(true);
-                        }
-                    }
-                }
-                catch // if the file corrupted
-                {
-                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
                 }
             }
         }

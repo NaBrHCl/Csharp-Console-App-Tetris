@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static System.Console;
+﻿using static System.Console;
 
 namespace Tetris
 {
@@ -17,6 +16,9 @@ namespace Tetris
         private int _pause;
         private int _refreshRate;
 
+        private string _settingsPath;
+        private string _scoreboardPath;
+
         private static string CURSOR = ">";
         private static string CURSOR_SPACE;
         private static byte CURSOR_X_POS = 3;
@@ -28,7 +30,7 @@ namespace Tetris
         private static byte MIN_CURSOR_Y = 8;
         private static byte MAX_CURSOR_Y = 13;
 
-        public Settings(List<ConsoleKey> upInput_, List<ConsoleKey> downInput_, List<ConsoleKey> confirmInput_, List<ConsoleKey> exitInput_, int pause_, int refreshRate_)
+        public Settings(List<ConsoleKey> upInput_, List<ConsoleKey> downInput_, List<ConsoleKey> confirmInput_, List<ConsoleKey> exitInput_, int pause_, int refreshRate_, string settingsPath_, string scoreboardPath_)
         {
             _upInput = upInput_;
             _downInput = downInput_;
@@ -38,6 +40,8 @@ namespace Tetris
             _refreshRate = refreshRate_;
             CONFIRM_TEXT_SPACE = ConvertToSpace(CONFIRM_TEXT);
             CURSOR_SPACE = ConvertToSpace(CURSOR);
+            _settingsPath = settingsPath_;
+            _scoreboardPath = scoreboardPath_;
         }
 
         public byte Music
@@ -69,8 +73,6 @@ namespace Tetris
             PrintMenu();
 
             ReadKey(true);
-
-            UpdateVisual(selection);
 
             while (true)
             {
@@ -128,7 +130,7 @@ namespace Tetris
                             case 5: // clear scoreboard
                                 if (ConfirmChange(cursorY))
                                 {
-                                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", String.Empty);
+                                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath, String.Empty);
 
                                     Clear();
                                     WriteLine("Exiting to clear the scoreboard");
@@ -222,7 +224,7 @@ namespace Tetris
         {
             try
             {
-                string settingsData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt");
+                string settingsData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + _settingsPath);
                 _music = Convert.ToByte(Convert.ToString(settingsData[0]));
                 _invertMovement = Convert.ToBoolean(Convert.ToByte(settingsData[1]));
                 _showGhostPiece = Convert.ToBoolean(Convert.ToByte(settingsData[2]));
@@ -245,7 +247,7 @@ namespace Tetris
 
         private void Update()
         {
-            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", $"{_music}{Convert.ToByte(_invertMovement)}{Convert.ToByte(_showGhostPiece)}{Convert.ToByte(_colourful)}");
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + _settingsPath, $"{_music}{Convert.ToByte(_invertMovement)}{Convert.ToByte(_showGhostPiece)}{Convert.ToByte(_colourful)}");
         }
 
         private void DefaultSettings()
