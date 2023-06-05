@@ -74,7 +74,7 @@ namespace Tetris
 
             settings = new Settings(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE);
 
-            if (settings.Invert) // 5943 ( _invert keys )
+            if (settings.InvertMovement) // 5943 ( _invertMovement keys )
             {
                 moveLeft[0] = ConsoleKey.D;
                 moveLeft[1] = ConsoleKey.RightArrow;
@@ -97,6 +97,7 @@ namespace Tetris
                 CursorVisible = false;
 
                 selection = Start(); // show menu (options) and get the user's selection
+
                 switch (selection)
                 {
                     case 0:
@@ -107,6 +108,7 @@ namespace Tetris
                     case 2: Scoreboard(); break;
                     case 3: Tutorial(); break;
                 }
+
                 Clear();
             }
             while (selection != 4); // case 4: ExitGame
@@ -177,13 +179,12 @@ namespace Tetris
 
             while (true)
             {
-                SetCursorPosition(X, y);
-                Write(CURSOR);
                 while (KeyAvailable)
                 {
                     ConsoleKey input = ReadKey(true).Key;
                     SetCursorPosition(X, y);
                     Write(CLEAR_CURSOR); // remove the previous CURSOR
+
                     if (downInput.Contains(input)) y++;
                     else if (upInput.Contains(input)) y--;
                     else if (confirmInput.Contains(input))
@@ -195,6 +196,10 @@ namespace Tetris
                     if (y == Y_NEWGAME - 1) y++;
                     else if (y == yExitGame + 1) y--;
                 }
+
+                SetCursorPosition(X, y);
+                Write(CURSOR);
+
                 Thread.Sleep(REFRESH_RATE);
             }
         }
@@ -220,7 +225,7 @@ namespace Tetris
 
             // detection
             bool hardDrop = false; // true if the hard drop key is pressed
-            bool drawGhost = false; // _ghost pieces won't be printed if it overlaps with the actual piece
+            bool drawGhost = false; // _showGhostPiece pieces won't be printed if it overlaps with the actual piece
             bool dropKeyPress = false; // true if the soft drop key is pressed
             bool ifPause = false; // true if the pause key is pressed
             bool intense = false; // intense = close to losing, play intense _music
@@ -428,11 +433,11 @@ namespace Tetris
                                 for (byte h = 0; h < WIDTH; h++)
                                 {
                                     coords[h, yFilledLine] = false; // clear the filled line (value)
-                                    colours[h, yFilledLine] = ConsoleColor.Black; // clear the filled line (_colour)
+                                    colours[h, yFilledLine] = ConsoleColor.Black; // clear the filled line (_colourful)
                                     for (byte v2 = yFilledLine; v2 > 0; v2--) // for the filled line and each line above it
                                     {
                                         coords[h, v2] = coords[h, v2 - 1]; // line below = line above (copying value)
-                                        colours[h, v2] = colours[h, v2 - 1]; // line below = line above (copying _colour)
+                                        colours[h, v2] = colours[h, v2 - 1]; // line below = line above (copying _colourful)
                                     }
                                 }
                                 DrawLines(yFilledLine, coords, colours, WIDTH);
@@ -551,7 +556,7 @@ namespace Tetris
                     tetros.Add(Dice(tetros[BLOC - 1])); // which type of tetro to generate
                     tetros.RemoveAt(0); // remove the one generated already
                     DrawPreview(tetros);
-                    switch (tetros[0]) // initialise tetromino blocks' position & _colour
+                    switch (tetros[0]) // initialise tetromino blocks' position & _colourful
                     {
                         case 0: // I               ████████
                             x[0] = 3; y[0] = UP_SPARE; //  
@@ -611,7 +616,7 @@ namespace Tetris
                             break;
                     }
 
-                    if (!settings.Colour) // for dicromatic mode
+                    if (!settings.Colourful) // for dicromatic mode
                     {
                         ForegroundColor = ConsoleColor.White;
                     }
@@ -900,7 +905,7 @@ namespace Tetris
                 if (!hardDrop) drawGhost = GetLowestPos(x, y, coords, true);
                 else drawGhost = GetLowestPos(x, y, coords);
 
-                if (drawGhost && settings.Ghost)
+                if (drawGhost && settings.ShowGhostPiece)
                 {
                     ConsoleColor previousColor = ForegroundColor;
                     ForegroundColor = ConsoleColor.DarkGray;
@@ -960,7 +965,7 @@ namespace Tetris
                 {
                     Thread.Sleep(pauseTime);
                 }
-                if (settings.Ghost && drawGhost && !hardDrop)
+                if (settings.ShowGhostPiece && drawGhost && !hardDrop)
                 {
                     Draw(x, lowY, false);
                 }
@@ -1078,7 +1083,7 @@ namespace Tetris
                 *---*---*---*   *---*
                 | 6 | 7 | 8 |
                 *---*---*---*");
-            if (settings.Colour) ForegroundColor = ConsoleColor.Red;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Red;
             else ForegroundColor = ConsoleColor.DarkGray;
             SetCursorPosition(16, 3);
             Write("*---*");
@@ -1123,7 +1128,7 @@ namespace Tetris
                     y = 2;
                 }
                 ConsoleColor selectionColour = ConsoleColor.White;
-                if (settings.Colour)
+                if (settings.Colourful)
                 {
                     byte colourNum = Dice();
                     switch (colourNum)
@@ -1216,7 +1221,7 @@ namespace Tetris
                 {
                     for (byte j = 0; j < BLOC; j++)
                     {
-                        if (lowY[i] == y[j]) // if the _ghost piece overlaps with the actual piece
+                        if (lowY[i] == y[j]) // if the _showGhostPiece piece overlaps with the actual piece
                         {
                             return false; // drawGhost = false
                         }
@@ -1361,47 +1366,47 @@ namespace Tetris
                 switch (tetros[(v / 5) + 1])
                 {
                     case 0: // I
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Cyan;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Cyan;
                         Write(BLOCK + BLOCK + BLOCK + BLOCK);
                         break;
 
                     case 1: // L
-                        if (settings.Colour) ForegroundColor = ConsoleColor.DarkYellow;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.DarkYellow;
                         Write(BLANK + BLANK + BLANK + BLOCK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
 
                     case 2: // J
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Blue;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Blue;
                         Write(BLANK + BLOCK + BLANK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
 
                     case 3: // T
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Magenta;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Magenta;
                         Write(BLANK + BLANK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLOCK);
                         break;
 
                     case 4: // O
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Yellow;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Yellow;
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
 
                     case 5: // S
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Green;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Green;
                         Write(BLANK + BLANK + BLOCK + BLOCK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         break;
 
                     case 6: // Z
-                        if (settings.Colour) ForegroundColor = ConsoleColor.Red;
+                        if (settings.Colourful) ForegroundColor = ConsoleColor.Red;
                         Write(BLANK + BLOCK + BLOCK + BLANK);
                         SetCursorPosition(33, 5 + v);
                         Write(BLANK + BLANK + BLOCK + BLOCK);
@@ -1762,12 +1767,12 @@ namespace Tetris
             WriteLine(" , each consisting of 4 blocks");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Cyan;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Cyan;
             SetCursorPosition(x, y + 2);
             Write("████████");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.DarkYellow;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.DarkYellow;
             x += xIncrement;
             SetCursorPosition(x, y);
             Write("██");
@@ -1777,7 +1782,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Green;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Green;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("████");
@@ -1785,7 +1790,7 @@ namespace Tetris
             Write("  ████");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Magenta;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Magenta;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("██████");
@@ -1793,7 +1798,7 @@ namespace Tetris
             Write("  ██  ");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Red;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Red;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("  ████");
@@ -1801,7 +1806,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Blue;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Blue;
             x += xIncrement;
             SetCursorPosition(x, y);
             Write("  ██");
@@ -1811,7 +1816,7 @@ namespace Tetris
             Write("████");
 
             Thread.Sleep(pause);
-            if (settings.Colour) ForegroundColor = ConsoleColor.Yellow;
+            if (settings.Colourful) ForegroundColor = ConsoleColor.Yellow;
             x += xIncrement;
             SetCursorPosition(x, y + 2);
             Write("████");

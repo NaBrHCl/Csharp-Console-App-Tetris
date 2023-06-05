@@ -6,9 +6,9 @@ namespace Tetris
     public class Settings
     {
         private byte _music; // whether play music and sounds or not / which piece to play
-        private bool _invert; // whether invert left and right movement keys
-        private bool _ghost; // whether show ghost pieces
-        private bool _colour; // whether black and white or colourful
+        private bool _invertMovement; // whether invert left and right movement keys
+        private bool _showGhostPiece; // whether show ghost pieces
+        private bool _colourful; // whether black and white or colourful
 
         private List<ConsoleKey> _upInput;
         private List<ConsoleKey> _downInput;
@@ -45,63 +45,41 @@ namespace Tetris
             get { return _music; }
         }
 
-        public bool Invert
+        public bool InvertMovement
         {
-            get { return _invert; }
+            get { return _invertMovement; }
         }
 
-        public bool Ghost
+        public bool ShowGhostPiece
         {
-            get { return _ghost; }
+            get { return _showGhostPiece; }
         }
 
-        public bool Colour
+        public bool Colourful
         {
-            get { return _colour; }
+            get { return _colourful; }
         }
 
         public void Init()
         {
-            byte selection;
-
-            Clear();
-            WriteLine(@"
-      ___      _   _   _              
-     / __| ___| |_| |_(_)_ _  __ _ ___
-     \__ \/ -_)  _|  _| | ' \/ _` (_-<
-     |___/\___|\__|\__|_|_||_\__, /__/
-                             |___/    
-");
-            WriteLine(@"
-     Background Music: 
-     Invert Movement Keys: 
-     Show Ghost Pieces: 
-     Colours: 
-     [ Set to default ]
-     [Clear Scoreboard]
-
-     Press Space or Enter to change options
-     Press ESC or BackSpace to return and save
-
-
-     Some changes will only be applied after the game restarts
-    ");
-
-            UpdateVisual();
-
-            ConsoleKey input;
-            ReadKey(true);
             byte cursorY = MIN_CURSOR_Y;
-            selection = (byte)(cursorY - MIN_CURSOR_Y);
+            byte selection = (byte) (cursorY - MIN_CURSOR_Y);
+            ConsoleKey input;
+
+            PrintMenu();
+
+            ReadKey(true);
+
             UpdateVisual(selection);
 
             while (true)
             {
                 while (KeyAvailable)
                 {
-                    input = ReadKey(true).Key;
                     SetCursorPosition(CURSOR_X_POS, cursorY);
                     Write(CURSOR_SPACE);
+
+                    input = ReadKey(true).Key;
 
                     if (_upInput.Contains(input) && cursorY > MIN_CURSOR_Y)
                     {
@@ -114,47 +92,51 @@ namespace Tetris
                     else if (_confirmInput.Contains(input))
                     {
                         selection = (byte)(cursorY - MIN_CURSOR_Y);
+
                         switch (selection)
                         {
-                            case 0: // music
+                            case 0:
                                 _music++;
 
                                 if (_music == 4)
                                     _music = 0;
                                 break;
 
-                            case 1: // invert
-                                _invert = !_invert;
+                            case 1:
+                                _invertMovement = !_invertMovement;
                                 break;
 
-                            case 2: // ghost
-                                _ghost = !_ghost;
+                            case 2:
+                                _showGhostPiece = !_showGhostPiece;
                                 break;
 
-                            case 3: // colour
-                                _colour = !_colour;
+                            case 3:
+                                _colourful = !_colourful;
                                 break;
 
                             case 4: // default settings
                                 if (ConfirmChange(cursorY))
                                 {
                                     DefaultSettings();
-                                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", Convert.ToString(_music) + Convert.ToString(_invert) + Convert.ToString(_ghost) + Convert.ToString(_colour));
+                                    Update();
                                 }
 
                                 UpdateVisual();
+
                                 break;
 
                             case 5: // clear scoreboard
                                 if (ConfirmChange(cursorY))
                                 {
                                     File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", String.Empty);
+
                                     Clear();
                                     WriteLine("Exiting to clear the scoreboard");
                                     Thread.Sleep(_pause * 2);
+
                                     Environment.Exit(0);
                                 }
-                                
+
                                 break;
                         }
 
@@ -174,11 +156,11 @@ namespace Tetris
 
                 SetCursorPosition(CURSOR_X_POS, cursorY);
                 Write(CURSOR);
+
                 Thread.Sleep(_refreshRate);
             }
-
-            ReadKey(true);
         }
+
         public void UpdateVisual(byte? selection = null)
         {
             byte j; // for a loop
@@ -206,7 +188,7 @@ namespace Tetris
 
                     case 1:
                         SetCursorPosition(27, 9);
-                        switch (_invert)
+                        switch (_invertMovement)
                         {
                             case true: Write("True "); break;
                             case false: Write("False"); break;
@@ -215,7 +197,7 @@ namespace Tetris
 
                     case 2:
                         SetCursorPosition(24, 10);
-                        switch (_ghost)
+                        switch (_showGhostPiece)
                         {
                             case true: Write("True "); break;
                             case false: Write("False"); break;
@@ -224,7 +206,7 @@ namespace Tetris
 
                     case 3:
                         SetCursorPosition(14, 11);
-                        switch (_colour)
+                        switch (_colourful)
                         {
                             case true: Write("multicoloured"); break;
                             case false: Write("dichromatic  "); break;
@@ -235,15 +217,16 @@ namespace Tetris
                 selection++;
             }
         }
+
         public void Load()
         {
             try
             {
                 string settingsData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt");
                 _music = Convert.ToByte(Convert.ToString(settingsData[0]));
-                _invert = Convert.ToBoolean(Convert.ToByte(settingsData[1]));
-                _ghost = Convert.ToBoolean(Convert.ToByte(settingsData[2]));
-                _colour = Convert.ToBoolean(Convert.ToByte(settingsData[3]));
+                _invertMovement = Convert.ToBoolean(Convert.ToByte(settingsData[1]));
+                _showGhostPiece = Convert.ToBoolean(Convert.ToByte(settingsData[2]));
+                _colourful = Convert.ToBoolean(Convert.ToByte(settingsData[3]));
             }
             catch (Exception e) // if the file corrupted
             {
@@ -262,15 +245,15 @@ namespace Tetris
 
         private void Update()
         {
-            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", $"{_music}{Convert.ToByte(_invert)}{Convert.ToByte(_ghost)}{Convert.ToByte(_colour)}");
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Settings.txt", $"{_music}{Convert.ToByte(_invertMovement)}{Convert.ToByte(_showGhostPiece)}{Convert.ToByte(_colourful)}");
         }
 
         private void DefaultSettings()
         {
             _music = 1; // music 1
-            _invert = false; // no input inverse
-            _ghost = false; // no ghost block display
-            _colour = true; // multicoloured
+            _invertMovement = false; // no input inverse
+            _showGhostPiece = false; // no ghost block display
+            _colourful = true; // multicoloured
         }
 
         private string ConvertToSpace(string str)
@@ -296,6 +279,34 @@ namespace Tetris
             Write(CONFIRM_TEXT_SPACE);
 
             return returnValue;
+        }
+
+        private void PrintMenu()
+        {
+            Clear();
+            WriteLine(@"
+      ___      _   _   _              
+     / __| ___| |_| |_(_)_ _  __ _ ___
+     \__ \/ -_)  _|  _| | ' \/ _` (_-<
+     |___/\___|\__|\__|_|_||_\__, /__/
+                             |___/    
+");
+            WriteLine(@"
+     Background Music: 
+     Invert Movement Keys: 
+     Show Ghost Pieces: 
+     Colours: 
+     [ Set to default ]
+     [Clear Scoreboard]
+
+     Press Space or Enter to change options
+     Press ESC or BackSpace to return and save
+
+
+     Some changes will only be applied after the game restarts
+    ");
+
+            UpdateVisual();
         }
     }
 }
