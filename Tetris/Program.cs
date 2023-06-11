@@ -10,6 +10,8 @@ namespace Tetris
         static int score = 0;
 
         static Settings settings;
+        static Scoreboard scoreboard;
+        static Tutorial tutorial;
 
         // reserving ( these aren't the actual dimensions, these are for checking if the tetromino will be out of border )
         const byte UP_SPARE = 2;
@@ -52,10 +54,8 @@ namespace Tetris
         static List<byte> bag2 = new();
 
         // file-read data, scoreboard and settings
-        const ushort MAX_QUANTITY = 255; // the maximum number of names / scores allowed
+        const ushort MAX_QUANTITY = 255; // the maximum number of _names / _scores allowed
         const ushort MAX_LENGTH = 15; // name length allowed
-        static List<string> names = new();
-        static List<int> scores = new();
 
         const string SETTINGS_PATH = "saves\\Settings.txt";
         const string SCOREBOARD_PATH = "saves\\Scoreboard.txt";
@@ -70,6 +70,8 @@ namespace Tetris
             // x: 0-19; y: 0-25
 
             settings = new Settings(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE, SETTINGS_PATH, SCOREBOARD_PATH);
+            scoreboard = new Scoreboard(PAUSE, SCOREBOARD_PATH);
+            tutorial = new Tutorial(upInput, downInput, confirmInput, exitInput, PAUSE, REFRESH_RATE, settings);
 
             if (settings.InvertMovement) // 5943 ( _invertMovement keys )
             {
@@ -84,7 +86,7 @@ namespace Tetris
 
             // loading
             settings.Load();
-            LoadScoreboard();
+            scoreboard.Load();
 
             byte selection;
             do
@@ -101,9 +103,9 @@ namespace Tetris
                         sbyte levelSelected = LevelSelection();
                         if (levelSelected != -1) NewGame((byte)levelSelected);
                         break;
-                    case 1: settings.Init(); break;
-                    case 2: Scoreboard(); break;
-                    case 3: Tutorial(); break;
+                    case 1: settings.Display(); break;
+                    case 2: scoreboard.Display(); break;
+                    case 3: Tutorial.Display(); break;
                 }
 
                 Clear();
@@ -335,16 +337,16 @@ namespace Tetris
      ║                    ║
      #════════════════════#         >       ");
 
-            if (scores.Count != 0) // if the scoreboard isn't empty
+            if (scoreboard.Scores.Count != 0) // if the scoreboard isn't empty
             {
                 // print the highest score
-                string strHighScore = Convert.ToString(scores[0]);
+                string strHighScore = Convert.ToString(scoreboard.Scores[0]);
                 if (strHighScore.Length == 1) highScorePosX = (byte)(VALUE_BASE_X + 1); // centre text if string length = 1
                 else highScorePosX = (byte)(VALUE_BASE_X + 1 - Math.Ceiling((float)(strHighScore.Length / 2))); // centre text if string length > 1
                 SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
                 Write("         ");
                 SetCursorPosition(highScorePosX - 1, HIGHSCORE_BASE_Y);
-                Write(scores[0]);
+                Write(scoreboard.Scores[0]);
             }
             else // if the scoreboard is empty
             {
@@ -1417,6 +1419,7 @@ namespace Tetris
             const byte Y_NO = 7; // y position for no
             const byte CURSOR_X = 12;
             const ushort CURTAIN_DROP_PAUSE = 50; // time interval between each row of curtain falls
+
             if (settings.Music != 0)
             {
                 background.Stop();
@@ -1425,13 +1428,15 @@ namespace Tetris
             }
             ForegroundColor = ConsoleColor.White;
             BackgroundColor = ConsoleColor.Black;
+
             for (byte i = 0; i < HEIGHT; i++)
             {
                 SetCursorPosition(6, 2 + i);
                 Write("████████████████████"); // curtain dropping
-                Thread.Sleep(CURTAIN_DROP_PAUSE);
+                Sleep.Uninterrupted(CURTAIN_DROP_PAUSE);
             }
-            Thread.Sleep(PAUSE);
+            Sleep.Uninterrupted(PAUSE);
+
             SetCursorPosition(16, 6);
             WriteLine(@"
                                                 
@@ -1441,15 +1446,18 @@ namespace Tetris
   \___/_/ \_\_|  |_|___|  \___/ \_/ |___|_|_\   
                                                 
                                                 ");
-            Thread.Sleep(1000);
+            Sleep.Uninterrupted(PAUSE);
+
             ReadKey(true);
             Clear();
             Write("Press any key to continue  .\r\n                           T\r\n                          ( )\r\n                          <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
             // https://www.asciiart.eu/buildings-and-places/monuments/other
             if (settings.Music != 0) ending.Play();
+
             ReadKey(true);
             Clear();
-            if (names.Count < MAX_QUANTITY)
+
+            if (scoreboard.Names.Count < MAX_QUANTITY)
             {
                 WriteLine(@"
 
@@ -1462,9 +1470,9 @@ namespace Tetris
 ");
                 SetCursorPosition(49, 4);
                 Write($"({score})");
-                if (scores.Count != 0)
+                if (scoreboard.Scores.Count != 0)
                 {
-                    if (scores[0] <= score)
+                    if (scoreboard.Scores[0] <= score)
                     {
                         SetCursorPosition(CURSOR_X, 3);
                         Write("New High Score! Congratulations!");
@@ -1477,6 +1485,7 @@ namespace Tetris
                 }
                 ConsoleKey input;
                 byte y = Y_YES; // y position of the CURSOR
+
                 do
                 {
                     SetCursorPosition(CURSOR_X, y);
@@ -1523,42 +1532,15 @@ namespace Tetris
                         }
                     }
                     while (charEntered != '\r');
+
                     if (name == "\r") name = "Anonymous";
                     else name = name.Remove(name.Length - 1); // the last char detected is "enter", therefore it needs to be removed
+
                     Clear();
                     WriteLine("Saving . . .");
-                    do
-                    {
-                        if (names.Count != 0)
-                        {
-                            if (score < scores[scores.Count - 1]) // if smaller than the lowest
-                            {
-                                names.Add(name);
-                                scores.Add(score);
-                                break; // I have to create a meaningless loop in order to break
-                            }
-                            for (byte i = 0; i < scores.Count; i++)
-                            {
-                                if (score >= scores[i]) // if current score is greater than that
-                                {
-                                    names.Insert(i, name);
-                                    scores.Insert(i, score);
-                                    break;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            names.Add(name);
-                            scores.Add(score);
-                        }
-                    }
-                    while (false);
-                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
-                    for (byte i = 0; i < names.Count; i++)
-                    {
-                        File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", $"{names[i]} {scores[i]}\r");
-                    }
+
+                    scoreboard.Save(name, score);
+
                     Clear();
                     WriteLine("Saved");
                     Thread.Sleep(PAUSE);
@@ -1568,467 +1550,6 @@ namespace Tetris
 
         #endregion
 
-        #region Tutorial
-        static void Tutorial()
-        {
-            Clear();
-            ForegroundColor = ConsoleColor.White;
-            ConsoleKey input;
-            bool page1 = false; // this will be true if the player has seen page1 already
-            byte page = 0;
-            Page0();
-            while (true)
-            {
-                while (KeyAvailable)
-                {
-                    input = ReadKey(true).Key;
-                    if (upInput.Contains(input) && page >= 1)
-                    {
-                        page--;
-                    }
-                    else if (downInput.Contains(input) || confirmInput.Contains(input))
-                    {
-                        if (page <= 3)
-                        {
-                            page++;
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
-                    else if (exitInput.Contains(input))
-                    {
-                        return;
-                    }
-                    else if (input == ConsoleKey.Y && page == 2)
-                    {
-                        if (page == 2)
-                        {
-                            Page2A();
-                        }
-                    }
-                    switch (page)
-                    {
-                        case 0:
-                            Page0();
-                            break;
-                        case 1:
-                            page1 = Page1(page1);
-                            break;
-                        case 2:
-                            Page2();
-                            break;
-                        case 3:
-                            Page3();
-                            break;
-                        case 4:
-                            Page4();
-                            break;
-                    }
-                }
-                Thread.Sleep(REFRESH_RATE);
-            }
-        }
-        static void Page0()
-        {
-            Clear();
-            Write(@"0
-     Press <- and -> to flip pages   Press Esc to exit at any time
-     #════════════════════#   +------------+
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   +------------+
-     ║                    ║
-     ║                    ║       SCORE
-     ║                    ║         0
-     ║                    ║
-     ║                    ║       LINES
-     ║                    ║         0
-     ║                    ║
-     ║                  ██║     HIGH SCORE
-     ║  ████    ████    ██║         0
-     ║████      ████  ████║
-     #════════════════════#         >       ");
-        }
-        static bool Page1(bool alreadyPlayed)
-        {
-            ushort pause;
-            if (alreadyPlayed == true)
-            {
-                pause = 0;
-            }
-            else
-            {
-                pause = PAUSE / 2;
-            }
-            byte x = 4, y = 10; // x and y level for showing tetrominoes, used for setting CURSOR location
-            byte xIncrement = 12;
-            Clear();
-            Write(@"1
-    The goal of this game is to earn as much score as possible. To earn score,
-    you need to control the ");
-            HighlightWord(" tetrominoes ");
-            Write(@" so that they fill a complete line.
-    Once a line is filled, it will be cleared automatically, and you 
-    will earn score depending on how many line you cleared at a time.
-    If your");
-            HighlightWord(" tetromino ");
-            Write(@" lands and touches the ceiling, the game ends.
 
-
-    Here are the seven types of ");
-            HighlightWord(" tetrominoes ");
-            WriteLine(" , each consisting of 4 blocks");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Cyan;
-            SetCursorPosition(x, y + 2);
-            Write("████████");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.DarkYellow;
-            x += xIncrement;
-            SetCursorPosition(x, y);
-            Write("██");
-            SetCursorPosition(x, y + 1);
-            Write("██");
-            SetCursorPosition(x, y + 2);
-            Write("████");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Green;
-            x += xIncrement;
-            SetCursorPosition(x, y + 2);
-            Write("████");
-            SetCursorPosition(x, y + 1);
-            Write("  ████");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Magenta;
-            x += xIncrement;
-            SetCursorPosition(x, y + 2);
-            Write("██████");
-            SetCursorPosition(x, y + 1);
-            Write("  ██  ");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Red;
-            x += xIncrement;
-            SetCursorPosition(x, y + 2);
-            Write("  ████");
-            SetCursorPosition(x, y + 1);
-            Write("████");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Blue;
-            x += xIncrement;
-            SetCursorPosition(x, y);
-            Write("  ██");
-            SetCursorPosition(x, y + 1);
-            Write("  ██");
-            SetCursorPosition(x, y + 2);
-            Write("████");
-
-            Thread.Sleep(pause);
-            if (settings.Colourful) ForegroundColor = ConsoleColor.Yellow;
-            x += xIncrement;
-            SetCursorPosition(x, y + 2);
-            Write("████");
-            SetCursorPosition(x, y + 1);
-            Write("████");
-
-            ForegroundColor = ConsoleColor.White;
-            return true;
-        }
-        static void Page2()
-        {
-            Clear();
-            Write(@"2
-    Here's the list of controls:
-    A, D or <, > to move left and right
-    W or ^ or Z or X to rotate clockwise
-    S or v to increasing falling speed
-    Spacebar to instantly drop
-    Esc or P to pause the game
-    Backspace to exit the game");
-            WriteLine(@"
-    . -------------------------------------------------------------------.        
-    | [Esc] [F1][F2][F3][F4][F5][F6][F7][F8][F9][F0][F10][F11][F12] o o o|        
-    |                                                                    |        
-    | [`][1][2][3][4][5][6][7][8][9][0][-][=][_<_] [I][H][U] [N][/][*][-]|        
-    | [|-][Q][W][E][R][T][Y][U][I][O][P][{][}] | | [D][E][D] [7][8][9]|+||        
-    | [CAP][A][S][D][F][G][H][J][K][L][;]['][#]|_|           [4][5][6]|_||        
-    | [^][\][Z][X][C][V][B][N][M][,][.][/] [__^__]    [^]    [1][2][3]| ||        
-    | [c]   [a][________________________][a]   [c] [<][V][>] [ 0  ][.]|_||        
-    `--------------------------------------------------------------------'        
-
-    Press 'Y' to try it for yourself
-    ");
-
-        }
-        static void Page2A()
-        {
-            byte tick = 0;
-            byte x = 4, y = 8; // x and y of the upper-left keyboard corner
-            SetCursorPosition(10, y + 10);
-            Write("'N' to finish             ");
-            ConsoleKey input;
-            while (true)
-            {
-                while (KeyAvailable)
-                {
-                    input = ReadKey(true).Key;
-                    if (input == ConsoleKey.Z)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 8, y + 6);
-                        Write("[Z]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Rotate Clockwise             ");
-                    }
-                    else if (input == ConsoleKey.X)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 11, y + 6);
-                        Write("[X]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Rotate Clockwise             ");
-                    }
-                    else if (input == ConsoleKey.A)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 7, y + 5);
-                        Write("[A]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Move Left                    ");
-                    }
-                    else if (input == ConsoleKey.D)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 13, y + 5);
-                        Write("[D]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Move Right                   ");
-                    }
-                    else if (input == ConsoleKey.W)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 9, y + 4);
-                        Write("[W]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Rotate Clockwise             ");
-                    }
-                    else if (input == ConsoleKey.S)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 10, y + 5);
-                        Write("[S]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Drop Soft                    ");
-                    }
-                    else if (input == ConsoleKey.Spacebar)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 11, y + 7);
-                        Write("[________________________]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Drop Hard                    ");
-                    }
-                    else if (input == ConsoleKey.LeftArrow)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 47, y + 7);
-                        Write("[<]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Move Left                    ");
-                    }
-                    else if (input == ConsoleKey.RightArrow)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 53, y + 7);
-                        Write("[>]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Move Right                   ");
-                    }
-                    else if (input == ConsoleKey.UpArrow)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 50, y + 6);
-                        Write("[^]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Rotate Clockwise             ");
-                    }
-                    else if (input == ConsoleKey.DownArrow)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 50, y + 7);
-                        Write("[v]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Drop Soft                    ");
-                    }
-                    else if (input == ConsoleKey.Escape)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 2, y + 1);
-                        Write("[Esc]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Pause                        ");
-                    }
-                    else if (input == ConsoleKey.P)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 33, y + 4);
-                        Write("[P]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Pause                        ");
-                    }
-                    else if (input == ConsoleKey.Backspace)
-                    {
-                        BackgroundColor = ConsoleColor.DarkGray;
-                        ForegroundColor = ConsoleColor.Black;
-                        SetCursorPosition(x + 41, y + 3);
-                        Write("[_<_]");
-                        BackgroundColor = ConsoleColor.Black;
-                        ForegroundColor = ConsoleColor.White;
-                        SetCursorPosition(x, y + 9);
-                        WriteLine("Exit                         ");
-
-                    }
-                    else if (input == ConsoleKey.N)
-                    {
-                        return;
-                    }
-                }
-                Thread.Sleep(REFRESH_RATE);
-                tick++;
-                if (tick == 28)
-                {
-                    SetCursorPosition(0, y - 1);
-                    WriteLine(@"
-    . -------------------------------------------------------------------.        
-    | [Esc] [F1][F2][F3][F4][F5][F6][F7][F8][F9][F0][F10][F11][F12] o o o|        
-    |                                                                    |        
-    | [`][1][2][3][4][5][6][7][8][9][0][-][=][_<_] [I][H][U] [N][/][*][-]|        
-    | [|-][Q][W][E][R][T][Y][U][I][O][P][{][}] | | [D][E][D] [7][8][9]|+||        
-    | [CAP][A][S][D][F][G][H][J][K][L][;]['][#]|_|           [4][5][6]|_||        
-    | [^][\][Z][X][C][V][B][N][M][,][.][/] [__^__]    [^]    [1][2][3]| ||        
-    | [c]   [a][________________________][a]   [c] [<][V][>] [ 0  ][.]|_||        
-    `--------------------------------------------------------------------'
-                                                                          ");
-                    tick = 0;
-                }
-            }
-        }
-        static void Page3()
-        {
-            Clear();
-            Write(@"3           LEVEL 0 <- Current level
-     #════════════════════#   +------------+
-     ║     GAME PANEL     ║   |  PREVIEW   |
-     ║                    ║   |            |
-     ║  This is the main  ║   | This panel |
-     ║  panel, where you  ║   | shows the  |
-     ║  need to pay most  ║   | next type  |
-     ║  attention to      ║   |of tetromino|
-     ║  each round        ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   |            |
-     ║                    ║   +------------+
-     ║                    ║
-     ║                    ║       SCORE <----- Your current score
-     ║                    ║         0
-     ║                    ║
-     ║                    ║       LINES <----- Number of line cleared
-     ║                    ║         0
-     ║                    ║
-     ║                  ██║     HIGH SCORE <-- Highest score recorded
-     ║  ████    ████    ██║         0
-     ║████      ████  ████║
-     #════════════════════#         >      <-- Pause Indicator > or ║ ");
-        }
-        static void Page4()
-        {
-            Clear();
-            Write("4                         <==>\r\n                           FJ\r\n                           ==\r\n                          J||F\r\n                          F||J\r\n                         /\\/\\/\\\r\n                         F++++J\r\n                        J{}{}{}F         .\r\n                     .  F{}{}{}J         T\r\n          .          T J{}{}{}{}F        ;;\r\n          T         /|\\F \\/ \\/ \\J  .   ,;;;;.\r\n         /:\\      .'/|\\\\:========F T ./;;;;;;\\\r\n       ./:/:/.   ///|||\\\\\\\"\"\"\"\"\"\" /x\\T\\;;;;;;/\r\n      //:/:/:/\\  \\\\\\\\|////..[]...xXXXx.|====|\r\n      \\:/:/:/:T7 :.:.:.:.:||[]|/xXXXXXx\\|||||\r\n      ::.:.:.:A. `;:;:;:;'=====\\XXXXXXX/=====.\r\n      `;\"\"::/xxx\\.|,|,|,| ( )( )| | | |.=..=.|\r\n       :. :`\\xxx/(_)(_)(_) _  _ | | | |'-''-'|\r\n       :T-'-.:\"\":|\"\"\"\"\"\"\"|/ \\/ \\|=====|======|\r\n       .A.\"\"\"||_|| ,. .. || || |/\\/\\/\\/ | | ||\r\n   :;:////\\:::.'.| || || ||-||-|/\\/\\/\\+|+| | |\r\n  ;:;;\\////::::,='======='============/\\/\\=====.\r\n:;:::;\"\"\":::::;:|__..,__|===========/||\\|\\====|\r\n:::::;|=:::;:;::|,;:::::         |========|   |\r\n::l42::::::(}:::::;::::::________|========|___|__");
-            // https://www.asciiart.eu/buildings-and-places/monuments/other
-            WriteLine();
-            WriteLine(@"
-    Don't forget to record your score after playing!
-
-    Good Luck Have Fun!");
-            // Alexey Leonidovich Pajitnov
-            // 田中 宏和
-            // Пётр Ильи́ч Чайко́вский
-            // Alexandre César Léopold Bizet
-        }
-        static void HighlightWord(string word)
-        {
-            BackgroundColor = ConsoleColor.White;
-            ForegroundColor = ConsoleColor.Black;
-            Write(word); // highlighting the word
-            BackgroundColor = ConsoleColor.Black;
-            ForegroundColor = ConsoleColor.White;
-        }
-
-        #endregion
     }
 }

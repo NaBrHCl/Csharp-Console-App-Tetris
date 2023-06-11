@@ -1,30 +1,38 @@
-﻿using static System.Console;
+﻿using System.Xml.Linq;
+using static System.Console;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Tetris
 {
     public class Scoreboard
     {
-        private static List<string> names = new();
-        private static List<int> scores = new();
+        private List<string> _names = new();
+        private List<int> _scores = new();
+
+        private const int NAME_LEFT = 8;
+        private const int SCORE_LEFT = 32;
+
+        private string _scoreboardPath;
 
         private int _pause;
 
-        public Scoreboard(int pause_)
+        public Scoreboard(int pause_, string scoreboardPath_)
         {
             _pause = pause_;
+            _scoreboardPath = scoreboardPath_;
         }
 
-        public List<string> Names()
+        public List<string> Names
         {
-            return names;
+            get { return _names; }
         }
 
-        public List<int> Scores()
+        public List<int> Scores
         {
-            return scores;
+            get { return _scores; }
         }
 
-        public void ScoreboardPlaceholder()
+        public void Display()
         {
             Clear();
             WriteLine(@"
@@ -34,61 +42,86 @@ namespace Tetris
      |___/\__\___/_| \___|_.__/\___/\__,_|_| \__,_|
                                                
 ");
-            SetCursorPosition(8, 7);
-            Write("Name");
-            SetCursorPosition(32, 7);
-            Write("Score");
 
-            for (byte i = 0; i < names.Count; i++)
+            CursorLeft = NAME_LEFT;
+            Write("Name");
+            CursorLeft = SCORE_LEFT;
+            WriteLine("Score");
+
+            int startTop = CursorTop;
+
+            for (byte i = 0; i < _names.Count; i++)
             {
-                SetCursorPosition(8, i + 8);
-                Write(names[i]);
-                SetCursorPosition(32, i + 8);
-                Write(scores[i]);
+                SetCursorPosition(NAME_LEFT, i + startTop);
+                Write(_names[i]);
+                SetCursorPosition(SCORE_LEFT, i + startTop);
+                Write(_scores[i]);
             }
+
             ReadKey(true);
         }
         public void Load()
         {
-            string scoreboardData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt");
-            if (scoreboardData != "") // if it's not empty
+            string scoreboardData = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath);
+            if (scoreboardData != String.Empty) // if it's not empty
             {
                 try
                 {
-                    string[] scoreboardLines = scoreboardData.Split("\r"); // divide into each line
+                    string[] scoreboardLines = scoreboardData.Split("\n"); // divide into each line
                     Array.Resize(ref scoreboardLines, scoreboardLines.Length - 1); // the last line is empty, remove it
                     string[] eachNameAndScore;
+
                     for (byte i = 0; i < scoreboardLines.Length; i++)
                     {
-                        eachNameAndScore = scoreboardLines[i].Split(' '); // divide into mixed names and scores
-                        names.Add(eachNameAndScore[0]);
-                        scores.Add(Convert.ToInt32(eachNameAndScore[1]));
+                        eachNameAndScore = scoreboardLines[i].Split(' '); // divide into mixed _names and _scores
+                        _names.Add(eachNameAndScore[0]);
+                        _scores.Add(Convert.ToInt32(eachNameAndScore[1]));
                     }
-                    if (names.Count > 255)
+
+                    if (_names.Count > 255)
                     {
-                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
+                        File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath, String.Empty);
                         Clear();
                         WriteLine(@"
-    You just changed data in the scoreboard,
-    And now there are too much data to process.
-    The scoreboard is cleared now,
-    You just need to restart the game to play.
+    external file edit detected in scoreboard.txt
+    name & score overflow
+    scoreboard cleared
+    restart required
 
 ");
-                        Thread.Sleep(_pause);
-                        WriteLine("    Never edit the game file again");
-                        for (byte i = 0; i < 255; i++)
-                        {
-                            ReadKey(true);
-                        }
+                        Sleep.Uninterrupted(300000);
+
                     }
                 }
                 catch // if the file corrupted
                 {
-                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "saves\\Scoreboard.txt", "");
+                    File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath, String.Empty);
                 }
             }
         }
 
+        public void Save(string name, int score)
+        {
+            if (Names.Count != 0)
+            {
+                int i = 0;
+
+                while (score < Scores[i] && i < Names.Count)
+                    i++;
+
+                Names.Insert(i, name);
+                Scores.Insert(i, score);
+            }
+            else
+            {
+                Names.Add(name);
+                Scores.Add(score);
+            }
+
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath, String.Empty);
+
+            for (byte i = 0; i < Names.Count; i++)
+                File.AppendAllText(AppDomain.CurrentDomain.BaseDirectory + _scoreboardPath, $"{Names[i]} {Scores[i]}\n");
+        }
     }
 }

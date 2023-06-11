@@ -19,16 +19,16 @@ namespace Tetris
         private string _settingsPath;
         private string _scoreboardPath;
 
-        private static string CURSOR = ">";
+        private const string CURSOR = ">";
         private static string CURSOR_SPACE;
-        private static byte CURSOR_X_POS = 3;
+        private const byte CURSOR_X_POS = 3;
 
-        private static string CONFIRM_TEXT = "Are you sure? (Y/N)";
+        private const string CONFIRM_TEXT = "Are you sure? (Y/N)";
         private static string CONFIRM_TEXT_SPACE;
-        private static byte CONFIRM_TEXT_X_POS = 24;
+        private const byte CONFIRM_TEXT_LEFT = 24;
 
-        private static byte MIN_CURSOR_Y = 8;
-        private static byte MAX_CURSOR_Y = 13;
+        private const byte MIN_CURSOR_TOP = 8;
+        private const byte MAX_CURSOR_TOP = 13;
 
         public Settings(List<ConsoleKey> upInput_, List<ConsoleKey> downInput_, List<ConsoleKey> confirmInput_, List<ConsoleKey> exitInput_, int pause_, int refreshRate_, string settingsPath_, string scoreboardPath_)
         {
@@ -64,10 +64,10 @@ namespace Tetris
             get { return _colourful; }
         }
 
-        public void Init()
+        public void Display()
         {
-            byte cursorY = MIN_CURSOR_Y;
-            byte selection = (byte) (cursorY - MIN_CURSOR_Y);
+            byte cursorY = MIN_CURSOR_TOP;
+            byte selection = (byte) (cursorY - MIN_CURSOR_TOP);
             ConsoleKey input;
 
             PrintMenu();
@@ -83,17 +83,17 @@ namespace Tetris
 
                     input = ReadKey(true).Key;
 
-                    if (_upInput.Contains(input) && cursorY > MIN_CURSOR_Y)
+                    if (_upInput.Contains(input) && cursorY > MIN_CURSOR_TOP)
                     {
                         cursorY--;
                     }
-                    else if (_downInput.Contains(input) && cursorY < MAX_CURSOR_Y)
+                    else if (_downInput.Contains(input) && cursorY < MAX_CURSOR_TOP)
                     {
                         cursorY++;
                     }
                     else if (_confirmInput.Contains(input))
                     {
-                        selection = (byte)(cursorY - MIN_CURSOR_Y);
+                        selection = (byte)(cursorY - MIN_CURSOR_TOP);
 
                         switch (selection)
                         {
@@ -272,12 +272,12 @@ namespace Tetris
         {
             const ConsoleKey CONFIRM_KEY = ConsoleKey.Y;
 
-            SetCursorPosition(CONFIRM_TEXT_X_POS, cursorY);
+            SetCursorPosition(CONFIRM_TEXT_LEFT, cursorY);
             Write(CONFIRM_TEXT);
 
             bool returnValue = (ReadKey(true).Key == CONFIRM_KEY);
 
-            SetCursorPosition(CONFIRM_TEXT_X_POS, cursorY);
+            SetCursorPosition(CONFIRM_TEXT_LEFT, cursorY);
             Write(CONFIRM_TEXT_SPACE);
 
             return returnValue;
