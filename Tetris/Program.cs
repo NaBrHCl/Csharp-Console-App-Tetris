@@ -105,7 +105,7 @@ namespace Tetris
                         break;
                     case 1: settings.Display(); break;
                     case 2: scoreboard.Display(); break;
-                    case 3: Tutorial.Display(); break;
+                    case 3: tutorial.Display(); break;
                 }
 
                 Clear();

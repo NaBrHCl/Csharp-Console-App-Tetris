@@ -23,7 +23,7 @@ namespace Tetris
             settings = settings_;
         }
 
-        public static void Display()
+        public void Display()
         {
             Clear();
             ForegroundColor = ConsoleColor.White;
@@ -86,7 +86,7 @@ namespace Tetris
                     }
                 }
 
-                Thread.Sleep(REFRESH_RATE);
+                Thread.Sleep(refreshRate);
             }
         }
         private static void Page0()
@@ -133,7 +133,7 @@ namespace Tetris
             }
             else
             {
-                pauseBetweenAnimation = pause / 2;
+                pauseBetweenAnimation = (ushort)(pause / 2);
             }
 
             byte x = 4, y = 10; // x and y level for showing tetrominoes, used for setting CURSOR location
