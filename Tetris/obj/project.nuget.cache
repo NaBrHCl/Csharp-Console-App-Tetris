@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "flZrLAg8xEWAsVYfKdnUWF+AS9Ozy6wk2PIgiwZ2MQJW/l20uBHdIFZKhdCjAwDzSd+LAXogjvjxlOoJXJbqDA==",
+  "dgSpecHash": "mBRdDR/XUSXyXxKglszrGGyJCOwTu4fowMZPk9MZhIw+MDOidJfVtYsyo7ezuoCjTS/ZefzEJy1ULoowc3G84w==",
   "success": true,
-  "projectFilePath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
+  "projectFilePath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0\\microsoft.win32.systemevents.7.0.0.nupkg.sha512",
     "C:\\Users\\sliu2\\.nuget\\packages\\system.drawing.common\\7.0.0\\system.drawing.common.7.0.0.nupkg.sha512",

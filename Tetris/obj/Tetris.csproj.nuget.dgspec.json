@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj": {}
+    "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj": {}
   },
   "projects": {
-    "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj": {
+    "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
+        "projectUniqueName": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
         "projectName": "Tetris",
-        "projectPath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
+        "projectPath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
         "packagesPath": "C:\\Users\\sliu2\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\Inutile\\Csharp-Console-App-Tetris\\Tetris\\obj\\",
+        "outputPath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\sliu2\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -61,7 +61,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     }
