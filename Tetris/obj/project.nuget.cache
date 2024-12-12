@@ -1,12 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "mBRdDR/XUSXyXxKglszrGGyJCOwTu4fowMZPk9MZhIw+MDOidJfVtYsyo7ezuoCjTS/ZefzEJy1ULoowc3G84w==",
+  "dgSpecHash": "7XCNpAmYSX4=",
   "success": true,
-  "projectFilePath": "C:\\Users\\sliu2\\Dropbox\\PC\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
+  "projectFilePath": "C:\\Users\\sliu2\\OneDrive\\Desktop\\Studying\\.Inutile\\Csharp-Console-App-Tetris\\Tetris\\Tetris.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0\\microsoft.win32.systemevents.7.0.0.nupkg.sha512",
     "C:\\Users\\sliu2\\.nuget\\packages\\system.drawing.common\\7.0.0\\system.drawing.common.7.0.0.nupkg.sha512",
-    "C:\\Users\\sliu2\\.nuget\\packages\\system.windows.extensions\\7.0.0\\system.windows.extensions.7.0.0.nupkg.sha512"
+    "C:\\Users\\sliu2\\.nuget\\packages\\system.windows.extensions\\7.0.0\\system.windows.extensions.7.0.0.nupkg.sha512",
+    "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.35\\microsoft.windowsdesktop.app.ref.6.0.35.nupkg.sha512",
+    "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.35\\microsoft.netcore.app.ref.6.0.35.nupkg.sha512",
+    "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.35\\microsoft.aspnetcore.app.ref.6.0.35.nupkg.sha512",
+    "C:\\Users\\sliu2\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\6.0.35\\microsoft.netcore.app.host.win-x64.6.0.35.nupkg.sha512"
   ],
   "logs": []
 }
